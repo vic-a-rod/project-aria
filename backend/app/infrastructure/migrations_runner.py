@@ -6,6 +6,7 @@ from sqlalchemy import Engine, inspect
 from sqlalchemy.engine import Connection
 
 INITIAL_REVISION = "20261109_0001"
+CURRENT_REVISION = "20261109_0002"
 LEGACY_TASK_COLUMNS = {
     "id",
     "title",
@@ -36,7 +37,7 @@ def _migration_config(connection: Connection) -> Config:
     return config
 
 
-def upgrade_database(engine: Engine) -> None:
+def upgrade_database(engine: Engine, revision: str = "head") -> None:
     """Upgrade an injected engine and safely adopt the pre-Alembic task schema."""
     with engine.begin() as connection:
         inspector = inspect(connection)
@@ -51,5 +52,5 @@ def upgrade_database(engine: Engine) -> None:
                 )
             command.stamp(config, INITIAL_REVISION)
 
-        command.upgrade(config, "head")
+        command.upgrade(config, revision)
 

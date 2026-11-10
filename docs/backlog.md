@@ -51,6 +51,8 @@ personal data in fixtures or logs.
 
 ### V1-D01 — Tasks, projects, categories, and tags
 
+Status: complete
+
 Normalize task storage, custom categories and tags, recurrence, audit timestamps,
 completion state, search, filtering, and stable sorting.
 

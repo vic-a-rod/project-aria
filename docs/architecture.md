@@ -24,9 +24,23 @@ FastAPI routes -> task service -> priority engine
 4. **Portable boundaries:** database configuration and API URLs come from environment variables so deployment can evolve without replacing domain logic.
 5. **Safe integrations:** external calendar and email adapters will be isolated and begin read-only.
 
-## Phase 1 domain
+## Task organization domain
 
-A task contains a title, description, category, tags, dates, estimated minutes, importance, completion status, scheduling flexibility, recurrence notes, and audit timestamps. Categories remain strings for the first slice so custom categories work immediately; a normalized category model can be introduced when category-specific settings are implemented.
+Tasks reference normalized category and optional project records and use a many-to-many
+tag association. Names remain the public API representation, so existing clients can
+send `category` and `tags` strings while the repository resolves case-insensitive
+identities. The default category remains `Personal`; custom categories, projects, and
+tags are created locally as tasks use them.
+
+Recurrence is represented as an iCalendar-style rule plus an explicit optional IANA
+time zone. Completion is represented by both `is_completed` and an aware UTC
+`completed_at` transition timestamp. Creation and update timestamps remain aware UTC
+instants.
+
+Task search covers title, description, category, project, and tag names. Category,
+project, tag, and completion filters compose. The application service owns explicit
+stable sorting and bounded offset/limit pagination so persistence adapters do not
+embed presentation policy.
 
 ## Application composition
 
@@ -50,6 +64,11 @@ inputs, stores a portable normalized UTC value, and restores an aware UTC instan
 when SQLite or another driver returns a timezone-naive value. API timestamps remain
 RFC 3339-compatible while application and domain layers stay independent of the
 database representation.
+
+Revision `20261109_0002` migrates legacy string categories and comma-separated tags
+into normalized records without changing task IDs. Case variants are deduplicated,
+legacy recurrence text becomes the recurrence rule, and already-completed tasks use
+their last update time as the initial completion timestamp.
 
 ## Layer boundaries
 

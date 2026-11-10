@@ -3,7 +3,12 @@ from collections.abc import Callable, Generator
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.api.schemas import TaskCreate, TaskRead, TaskUpdate
-from app.application.tasks import TaskNotFoundError, TaskService
+from app.application.tasks import (
+    SortDirection,
+    TaskNotFoundError,
+    TaskService,
+    TaskSort,
+)
 
 TaskServiceDependency = Callable[[], Generator[TaskService, None, None]]
 
@@ -19,10 +24,26 @@ def create_api_router(task_service_dependency: TaskServiceDependency) -> APIRout
     def tasks_index(
         search: str | None = Query(default=None, max_length=200),
         category: str | None = Query(default=None, max_length=80),
+        project: str | None = Query(default=None, max_length=200),
+        tag: str | None = Query(default=None, max_length=80),
         completed: bool | None = None,
+        sort: TaskSort = TaskSort.PRIORITY,
+        direction: SortDirection = SortDirection.DESC,
+        offset: int = Query(default=0, ge=0),
+        limit: int = Query(default=100, ge=1, le=200),
         service: TaskService = Depends(task_service_dependency),
     ) -> list[TaskRead]:
-        views = service.list(search=search, category=category, completed=completed)
+        views = service.list(
+            search=search,
+            category=category,
+            project=project,
+            tag=tag,
+            completed=completed,
+            sort=sort,
+            direction=direction,
+            offset=offset,
+            limit=limit,
+        )
         return [TaskRead.from_view(view) for view in views]
 
     @router.post("/api/tasks", response_model=TaskRead, status_code=status.HTTP_201_CREATED)
