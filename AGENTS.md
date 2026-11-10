@@ -15,6 +15,14 @@ Aria is all of the following:
 3. A progressively intelligent assistant in which AI interprets and recommends,
    deterministic services calculate and mutate, and the user remains in control.
 
+The four versions are delivery layers rather than capability tiers:
+
+- Version 1 is the complete local, typed assistant, including tasks, events,
+  priorities, scheduling, email, calendar, preferences, and proactive logic.
+- Version 2 adds speech input and spoken responses to the same command pipeline.
+- Version 3 hosts the same core permanently for authenticated apps and websites.
+- Version 4 adds dedicated household speaker/microphone devices as thin clients.
+
 Optimize sustainable productivity, not maximum workload. Rest and unallocated time
 are valid scheduling results.
 
@@ -82,9 +90,10 @@ not redesign product behavior without coordination.
 
 ### AI and integrations
 
-This workstream remains inactive until the roadmap reaches the relevant version. It
-will own typed intent adapters and provider adapters, never core calculations or
-direct persistence.
+This is an active Version 1 workstream. It owns typed intent adapters, email/calendar
+provider adapters, provenance, protected credentials, and synchronization. It never
+owns core calculations or direct model-driven persistence. Audio capture and speech
+rendering remain Version 2 work.
 
 ## Required workflow
 

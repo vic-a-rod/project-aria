@@ -1,102 +1,113 @@
-# Version roadmap
+# Four-version roadmap
 
-Aria grows in capability layers. Each version must remain usable without later
-layers, and local-only operation remains supported throughout the project.
+Aria's versions are defined by interaction and deployment form. Version 1 contains
+the complete functional intelligence. Versions 2–4 reuse that intelligence through
+new transports, hosting, and devices.
 
-## v0.1 — Local core MVP
+> Build each functional capability once behind stable application commands.
+> Later versions add clients and infrastructure, not duplicate business logic.
 
-Purpose: provide dependable personal task management without AI or external
-accounts.
+## Version 1 — Local typed Aria
 
-Includes task CRUD, categories and tags, search and filtering, dates, estimated
-effort, importance, fixed/flexible status, deterministic priority explanations,
-SQLite persistence, a responsive dashboard, and automated checks.
+Aria runs on a Windows computer and is controlled through screens and typed
+natural-language requests. Text-only describes the interaction medium, not a reduced
+feature set.
 
-Done when a Windows user can install Aria, manage tasks entirely through the UI,
-restart it without losing data, and understand every priority recommendation.
+Version 1 includes:
 
-Out of scope: LLMs, chat, voice, automatic scheduling, external calendar/email,
-accounts, cloud sync, learned preferences, and proactive notifications.
+- Tasks, projects, categories, tags, events, appointments, commitments, and recurring
+  responsibilities
+- Internship and job applications, interviews, contacts, follow-ups, and deadlines
+- Daily, weekly, monthly, custom-range, and workload calendar views
+- Fixed versus flexible commitments, free-time calculation, and conflict detection
+- Deterministic priorities, scheduling proposals, workload simulations, and
+  explainable recommendations
+- Sustainable workload modes, protected rest/family time, preferences, reminders,
+  quiet hours, and proactive local recommendations
+- Typed natural-language commands using validated structured intents
+- Email and calendar connections with read-only scopes first, source provenance, and
+  proposed tasks/events derived from external information
+- Explicit previews and confirmations before consequential mutations or external
+  writes
+- Local SQLite storage, protected credentials, offline degradation, and Windows-
+  friendly installation and startup
 
-## v0.2 — Calendar foundation
+Version 1 is complete when a user can type a request such as “Review my email and
+calendar, identify important responsibilities, and propose a manageable week,”
+inspect the evidence and deterministic reasoning, approve selected changes, restart
+Aria, and continue using the saved plan.
 
-Purpose: represent commitments, free time, and workload accurately before adding AI.
+## Version 2 — Conversational voice Aria
 
-Includes day/week/month views, fixed commitments versus flexible tasks, available
-time, manual placement, conflict detection, workload summaries, and unified display
-of classes, study, interviews, appointments, projects, and personal commitments.
+Version 2 adds speech to the complete Version 1 assistant:
 
-Done when users can inspect obligations and free time across useful ranges, fixed
-commitments cannot be moved accidentally, and conflicts are detected
-deterministically.
+- Microphone capture and speech-to-text
+- Spoken responses through text-to-speech
+- Push-to-talk and configurable listening modes
+- Interruption, cancellation, and clear listening/processing/speaking indicators
+- Voice confirmation flows that retain the same safety rules as typed commands
 
-Out of scope: automatic calendar changes, external sync, natural-language commands,
-and LLM optimization.
+Speech transcripts enter the Version 1 command contract. Responses use a structured
+short speaking form. No scheduling, priority, email, calendar, or task logic may be
+implemented inside the audio layer.
 
-## v0.3 — Structured text assistant
+Version 2 is complete when every supported typed workflow can be performed
+conversationally without bypassing validation, evidence, authorization, or
+confirmation.
 
-Purpose: add natural-language convenience without transferring authority to a model.
+## Version 3 — Permanent server and application platform
 
-Includes a text interface, typed command schema, task commands, summaries, workload
-questions, priority explanations, ambiguity handling, and previews before
-consequential mutations.
+Version 3 moves the same domain and application core to an always-available server
+used by authenticated apps and a website.
 
-Done when common commands map reliably to validated application operations and the
-model cannot write directly to storage.
+It adds:
 
-Out of scope: voice, autonomy, learning, external integrations, and silent changes.
+- Authentication, authorization, sessions, and per-user data isolation
+- An authenticated, versioned multi-client API
+- A server-grade database, durable background workers, and encrypted secret storage
+- Secure remote access, rate limits, observability, backups, and recovery
+- Multi-device synchronization, concurrency, idempotency, and conflict handling
+- Web and application clients using the existing command/result contracts
 
-## v0.4 — Adaptive scheduling
+Version 3 is complete when authorized clients safely use one persistent Aria account
+without rewriting Version 1 domain engines.
 
-Purpose: simulate sustainable plans and temporary workload changes.
+## Version 4 — Dedicated household Aria hardware
 
-Includes an explainable scheduling engine, alternative schedule previews, temporary
-workload profiles, protected rest/family periods, configurable priority weights,
-risk reporting, alerts, and quiet hours.
+Version 4 adds custom speaker/microphone devices similar in purpose to an Alexa or
+Echo Dot. Each unit is a thin client of the Version 3 service.
 
-Done when users can preview feasible schedules without mutating committed data,
-temporary overrides expire predictably, and essential deadlines remain visible when
-workload is reduced.
+It adds:
 
-Out of scope: unapproved persistent learning, external writes, and autonomous
-planning.
+- Far-field microphone array, speaker, acoustic echo cancellation, and interruption
+- Wake-word or physical activation
+- Visible hardware mute and recording-state controls
+- Secure device enrollment, identity, revocation, and room association
+- Encrypted communication with the Version 3 server
+- Signed firmware, secure boot where supported, and safe update mechanisms
+- Minimal local audio buffering and graceful degraded/offline behavior
 
-## v0.5 — Approved personalization
+Household devices do not store the primary user database, email credentials, or
+planning engine. Version 4 is complete when enrolled devices provide reliable,
+privacy-visible household access to the same Aria account.
 
-Purpose: adapt to the user through inspectable, reversible preferences.
+## Compatibility constraints established in Version 1
 
-Includes explicit preferences, temporary overrides, evidence-backed suggested
-preferences, approval before persistence, review/edit/reset/disable controls, and
-category-specific duration and scheduling rules.
-
-Done when users can distinguish explicit, temporary, and inferred rules and can
-restore predictable defaults at any time.
-
-Out of scope: hidden profiling, medical inference, irreversible rules, and training
-from private user data.
-
-## v0.6 — External integrations
-
-Purpose: safely incorporate calendar, email, coursework, and application workflows.
-
-Includes an internship application tracker, read-only Google/Microsoft calendar
-import, explicitly authorized email discovery, task/draft suggestions, source
-provenance, minimal OAuth scopes, revocation, and sync status.
-
-Done when integrations can be disconnected without breaking Aria, credentials remain
-private, and no external write occurs without explicit confirmation.
-
-Out of scope: automatic sending, silent calendar writes, broad inbox ingestion, and
-unnecessary permissions.
-
-## v1.0 and later — Advanced access
-
-Purpose: expand interaction and deployment after the core is trustworthy.
-
-Candidates include voice using the same validated command pipeline, optional local
-LLMs, home-server deployment, secure multi-device synchronization, and a community
-integration framework.
-
-Security design is required before public server exposure, always-listening voice,
-or multi-device synchronization.
+- Scope user-owned records through a local profile/workspace identifier even though
+  Version 1 is single-user.
+- Use portable IDs, UTC instants, explicit IANA time zones, migrations, and repository
+  interfaces.
+- Keep domain and application layers independent of FastAPI, SQLAlchemy, LLM SDKs,
+  provider SDKs, microphone libraries, and deployment assumptions.
+- Convert all requests into versioned typed commands before execution.
+- Return structured data, explanations, proposals, warnings, and concise speakable
+  text rather than UI-only strings.
+- Separate proposals from execution through expiring confirmation tokens and audit
+  records.
+- Keep provider credentials behind a vault abstraction and external content behind
+  provider-neutral models with provenance.
+- Treat email, calendar, and web content as untrusted data that can never authorize
+  actions or override application rules.
+- Abstract recurring/background work so Version 1 can use an in-process scheduler and
+  Version 3 can use durable workers without changing application behavior.
 

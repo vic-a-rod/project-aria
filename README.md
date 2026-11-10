@@ -4,7 +4,8 @@ Aria is a local-first productivity assistant focused on sustainable planning. Th
 
 ## Current milestone
 
-Phase 1 provides:
+The repository is building Version 1: the complete local, typed Aria. The current
+foundation provides:
 
 - Task creation, editing, completion, deletion, search, and filtering
 - User-defined categories and tags
@@ -14,7 +15,11 @@ Phase 1 provides:
 - A responsive dashboard
 - Backend tests
 
-AI commands, calendar synchronization, email integration, and voice are future milestones.
+Version 1 will add the complete task/event/application model, deterministic planning,
+typed natural-language commands, and email/calendar connections. Version 2 adds
+speech input and output; Version 3 moves the same core to a permanent server for apps
+and web; Version 4 adds dedicated household speaker/microphone devices. See
+[`docs/roadmap.md`](docs/roadmap.md).
 
 ## Repository layout
 
