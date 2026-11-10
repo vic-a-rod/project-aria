@@ -31,6 +31,11 @@ docs/      Architecture and project decisions
 
 ## Run locally
 
+After completing the one-time backend and frontend setup below, Windows users can
+double-click **`Start Aria.cmd`** in the repository root. It starts both local
+services, waits until they are ready, and opens the dashboard automatically. Use
+**`Stop Aria.cmd`** to stop services created by the launcher.
+
 ### Backend
 
 ```powershell

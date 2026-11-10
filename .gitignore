@@ -27,6 +27,7 @@ frontend/vite.config.d.ts
 *.log
 backups/
 exports/
+.aria/
 
 # Editors and operating systems
 .idea/
