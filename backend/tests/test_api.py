@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-os.environ["JARVIS_DATABASE_URL"] = "sqlite:///./test_jarvis.db"
+os.environ["ARIA_DATABASE_URL"] = "sqlite:///./test_aria.db"
 
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -39,5 +39,5 @@ def test_task_lifecycle() -> None:
 
 def teardown_module() -> None:
     engine.dispose()
-    Path("test_jarvis.db").unlink(missing_ok=True)
+    Path("test_aria.db").unlink(missing_ok=True)
 

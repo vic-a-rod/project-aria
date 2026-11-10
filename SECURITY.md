@@ -1,6 +1,6 @@
 # Security policy
 
-Project Jarvis is early-stage software and has not received a security audit. Do not
+Project Aria is early-stage software and has not received a security audit. Do not
 expose the development server directly to the public internet or use production
 credentials during development.
 

@@ -1,7 +1,7 @@
 # Privacy and data isolation
 
 The public repository contains application source code only. It must never be used
-as a backup or synchronization location for a user's Jarvis data.
+as a backup or synchronization location for a user's Aria data.
 
 ## Local-only data
 
@@ -27,7 +27,7 @@ variable names and safe placeholder values but never working credentials.
 ## External integrations
 
 Future email and calendar integrations must use minimum necessary permissions, begin
-read-only, and keep credentials outside the repository. Jarvis must not send messages
+read-only, and keep credentials outside the repository. Aria must not send messages
 or modify an external calendar without explicit authorization and confirmation.
 
 ## Before publishing

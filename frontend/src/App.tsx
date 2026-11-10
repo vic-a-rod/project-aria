@@ -42,7 +42,7 @@ function App() {
       setTasks((current) => [created, ...current]);
       setDraft(emptyTask);
     } catch {
-      setError("Jarvis could not save that task.");
+      setError("Aria could not save that task.");
     }
   }
 
@@ -51,14 +51,14 @@ function App() {
       const updated = await api.setCompleted(task.id, !task.is_completed);
       setTasks((current) => current.map((item) => (item.id === task.id ? updated : item)));
     } catch {
-      setError("Jarvis could not update that task.");
+      setError("Aria could not update that task.");
     }
   }
 
   return (
     <main>
       <header>
-        <div className="brand"><span>J</span> Jarvis</div>
+        <div className="brand"><span>A</span> Aria</div>
         <p className="eyebrow">Sustainable productivity, one clear choice at a time.</p>
       </header>
 
@@ -66,7 +66,7 @@ function App() {
         <div>
           <p className="eyebrow">Today’s overview</p>
           <h1>Make space for what matters.</h1>
-          <p className="subtle">Jarvis ranks responsibilities with clear rules while leaving room for life.</p>
+          <p className="subtle">Aria ranks responsibilities with clear rules while leaving room for life.</p>
         </div>
         <div className="metrics">
           <article><strong>{openTasks.length}</strong><span>open tasks</span></article>
@@ -116,7 +116,7 @@ function App() {
               <label>Minutes<input type="number" min="5" max="1440" value={draft.estimated_minutes} onChange={(e) => setDraft({ ...draft, estimated_minutes: Number(e.target.value) })} /></label>
               <label>Importance<select value={draft.importance} onChange={(e) => setDraft({ ...draft, importance: Number(e.target.value) })}>{[1,2,3,4,5].map((value) => <option key={value}>{value}</option>)}</select></label>
             </div>
-            <button className="primary" type="submit">Add to Jarvis</button>
+            <button className="primary" type="submit">Add to Aria</button>
           </form>
           <p className="privacy">Stored locally. No account or cloud sync.</p>
         </aside>

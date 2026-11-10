@@ -1,6 +1,6 @@
 # Architecture
 
-Jarvis starts as a local web application with a clean boundary between presentation, application logic, and persistence.
+Aria starts as a local web application with a clean boundary between presentation, application logic, and persistence.
 
 ```text
 React dashboard

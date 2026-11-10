@@ -8,7 +8,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   });
   if (!response.ok) {
-    throw new Error(`Jarvis API returned ${response.status}`);
+    throw new Error(`Aria API returned ${response.status}`);
   }
   return response.status === 204 ? (undefined as T) : response.json();
 }

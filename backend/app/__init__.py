@@ -1,2 +1,2 @@
-"""Project Jarvis backend package."""
+"""Project Aria backend package."""
 

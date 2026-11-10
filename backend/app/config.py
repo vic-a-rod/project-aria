@@ -4,10 +4,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    database_url: str = "sqlite:///./jarvis.db"
+    database_url: str = "sqlite:///./aria.db"
     cors_origins: str = "http://localhost:5173"
 
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="JARVIS_")
+    model_config = SettingsConfigDict(env_file=".env", env_prefix="ARIA_")
 
     @property
     def allowed_origins(self) -> list[str]:

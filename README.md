@@ -1,6 +1,6 @@
-# Project Jarvis
+# Project Aria
 
-Jarvis is a local-first productivity assistant focused on sustainable planning. The first milestone is intentionally useful without an AI model: manage tasks, explain priority recommendations, and keep personal data on the user's computer.
+Aria is a local-first productivity assistant focused on sustainable planning. The first milestone is intentionally useful without an AI model: manage tasks, explain priority recommendations, and keep personal data on the user's computer.
 
 ## Current milestone
 
@@ -52,7 +52,7 @@ Open `http://localhost:5173`.
 
 ## Data and privacy
 
-Every clone starts empty. Jarvis does not ship with the maintainer's tasks, calendar,
+Every clone starts empty. Aria does not ship with the maintainer's tasks, calendar,
 applications, preferences, database, credentials, or machine-specific configuration.
 
 Local databases, environment files, credentials, tokens, and real personal data are
@@ -70,5 +70,5 @@ boundary contributors must preserve.
 
 ## License
 
-Project Jarvis is available under the [MIT License](LICENSE).
+Project Aria is available under the [MIT License](LICENSE).
 
