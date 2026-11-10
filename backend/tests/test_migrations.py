@@ -28,6 +28,10 @@ def test_upgrade_from_empty_creates_current_task_schema(tmp_path) -> None:
     inspector = inspect(engine)
     assert {
         "alembic_version",
+        "application_contacts",
+        "application_follow_ups",
+        "application_interviews",
+        "applications",
         "categories",
         "events",
         "projects",

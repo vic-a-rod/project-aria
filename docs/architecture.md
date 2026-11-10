@@ -56,6 +56,18 @@ plus an optional external reference. External content remains data, never an
 instruction. Revision `20261109_0003` adds the event store without changing existing
 task records.
 
+## Application tracking domain
+
+Internship and job applications store company, role, lifecycle status, posting
+provenance, deadlines, notes, fictional-test contacts, interviews, and follow-ups in
+normalized local tables. Interview instants and application deadlines are aware UTC
+values with an explicit IANA display time zone. Follow-ups carry due dates, effort,
+importance, and completion state.
+
+The application service projects deadlines, non-cancelled interviews, and unfinished
+follow-ups into one transport-neutral workload feed. Later calendar, priority, and
+scheduling engines consume that feed instead of duplicating application records.
+
 ## Application composition
 
 `app.main` is the production composition root and constructs the API through

@@ -101,3 +101,74 @@ class EventRow(Base):
     created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
 
+
+class ApplicationRow(Base):
+    __tablename__ = "applications"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    company: Mapped[str] = mapped_column(String(200), index=True)
+    role: Mapped[str] = mapped_column(String(200), index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    posting_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    posting_source: Mapped[str] = mapped_column(String(200), default="")
+    applied_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
+    deadline_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True, index=True)
+    time_zone: Mapped[str] = mapped_column(String(100))
+    notes: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
+    contacts: Mapped[list["ApplicationContactRow"]] = relationship(
+        cascade="all, delete-orphan", order_by="ApplicationContactRow.id"
+    )
+    interviews: Mapped[list["ApplicationInterviewRow"]] = relationship(
+        cascade="all, delete-orphan", order_by="ApplicationInterviewRow.start_at"
+    )
+    follow_ups: Mapped[list["ApplicationFollowUpRow"]] = relationship(
+        cascade="all, delete-orphan", order_by="ApplicationFollowUpRow.due_date"
+    )
+
+
+class ApplicationContactRow(Base):
+    __tablename__ = "application_contacts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    application_id: Mapped[int] = mapped_column(
+        ForeignKey("applications.id", ondelete="CASCADE"), index=True
+    )
+    name: Mapped[str] = mapped_column(String(200))
+    role: Mapped[str] = mapped_column(String(200), default="")
+    email: Mapped[str] = mapped_column(String(320), default="")
+    phone: Mapped[str] = mapped_column(String(80), default="")
+    notes: Mapped[str] = mapped_column(Text, default="")
+
+
+class ApplicationInterviewRow(Base):
+    __tablename__ = "application_interviews"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    application_id: Mapped[int] = mapped_column(
+        ForeignKey("applications.id", ondelete="CASCADE"), index=True
+    )
+    title: Mapped[str] = mapped_column(String(200))
+    start_at: Mapped[datetime] = mapped_column(UtcDateTime(), index=True)
+    end_at: Mapped[datetime] = mapped_column(UtcDateTime())
+    time_zone: Mapped[str] = mapped_column(String(100))
+    location: Mapped[str] = mapped_column(String(300), default="")
+    status: Mapped[str] = mapped_column(String(32), default="scheduled")
+    notes: Mapped[str] = mapped_column(Text, default="")
+
+
+class ApplicationFollowUpRow(Base):
+    __tablename__ = "application_follow_ups"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    application_id: Mapped[int] = mapped_column(
+        ForeignKey("applications.id", ondelete="CASCADE"), index=True
+    )
+    title: Mapped[str] = mapped_column(String(200))
+    due_date: Mapped[date] = mapped_column(Date, index=True)
+    estimated_minutes: Mapped[int] = mapped_column(Integer, default=15)
+    importance: Mapped[int] = mapped_column(Integer, default=3)
+    completed_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
+    notes: Mapped[str] = mapped_column(Text, default="")
+

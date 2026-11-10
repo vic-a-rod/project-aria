@@ -6,7 +6,7 @@ from sqlalchemy import Engine, inspect
 from sqlalchemy.engine import Connection
 
 INITIAL_REVISION = "20261109_0001"
-CURRENT_REVISION = "20261109_0003"
+CURRENT_REVISION = "20261109_0004"
 LEGACY_TASK_COLUMNS = {
     "id",
     "title",

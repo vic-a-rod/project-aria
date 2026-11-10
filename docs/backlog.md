@@ -65,6 +65,8 @@ appointments, source provenance, and calendar placement.
 
 ### V1-D03 — Internship and job applications
 
+Status: complete
+
 Add companies, roles, statuses, postings, recruiter contacts, interviews, follow-ups,
 notes, deadlines, and unified calendar/workload representation.
 

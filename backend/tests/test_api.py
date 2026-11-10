@@ -230,3 +230,103 @@ def test_all_day_recurring_commitment_and_invalid_event_shapes(client: TestClien
     assert required_null.status_code == 422
     assert required_null.json()["detail"] == "time_zone is required"
 
+
+def test_application_tracking_and_unified_workload(client: TestClient) -> None:
+    created = client.post(
+        "/api/applications",
+        json={
+            "company": "Fictional Robotics Cooperative",
+            "role": "Software Intern",
+            "status": "interviewing",
+            "posting_url": "https://example.invalid/jobs/software-intern",
+            "posting_source": "Fictional university board",
+            "applied_at": "2026-11-01T16:00:00Z",
+            "deadline_at": "2026-11-20T23:59:00-07:00",
+            "time_zone": "America/Phoenix",
+            "notes": "Entirely fictional application fixture.",
+            "contacts": [
+                {
+                    "name": "Morgan Example",
+                    "role": "Fictional recruiter",
+                    "email": "morgan@example.invalid",
+                }
+            ],
+            "interviews": [
+                {
+                    "title": "Fictional technical interview",
+                    "start_at": "2026-11-15T10:00:00-07:00",
+                    "end_at": "2026-11-15T11:00:00-07:00",
+                    "time_zone": "America/Phoenix",
+                    "location": "Fictional video room",
+                }
+            ],
+            "follow_ups": [
+                {
+                    "title": "Send fictional thank-you note",
+                    "due_date": "2026-11-16",
+                    "estimated_minutes": 15,
+                    "importance": 4,
+                }
+            ],
+        },
+    )
+    assert created.status_code == 201, created.text
+    application = created.json()
+    assert application["company"] == "Fictional Robotics Cooperative"
+    assert application["contacts"][0]["email"] == "morgan@example.invalid"
+    assert application["interviews"][0]["start_at"] == "2026-11-15T17:00:00Z"
+    assert application["created_at"] == "2026-11-09T17:00:00Z"
+
+    workload = client.get(f"/api/applications/{application['id']}/workload")
+    assert workload.status_code == 200
+    assert {item["kind"] for item in workload.json()} == {
+        "application_deadline",
+        "interview",
+        "follow_up",
+    }
+    interview = next(item for item in workload.json() if item["kind"] == "interview")
+    assert interview["estimated_minutes"] == 60
+    assert interview["is_fixed"] is True
+
+    updated = client.patch(
+        f"/api/applications/{application['id']}", json={"status": "offer"}
+    )
+    assert updated.status_code == 200
+    assert updated.json()["status"] == "offer"
+    assert client.get("/api/applications", params={"status": "offer"}).json()[0][
+        "id"
+    ] == application["id"]
+
+    assert client.delete(f"/api/applications/{application['id']}").status_code == 204
+    assert client.get("/api/applications").json() == []
+
+
+def test_application_rejects_invalid_interview_and_required_null(client: TestClient) -> None:
+    invalid = client.post(
+        "/api/applications",
+        json={
+            "company": "Fictional Studio",
+            "role": "Design Intern",
+            "interviews": [
+                {
+                    "title": "Invalid fictional interview",
+                    "start_at": "2026-11-15T11:00:00Z",
+                    "end_at": "2026-11-15T10:00:00Z",
+                    "time_zone": "UTC",
+                }
+            ],
+        },
+    )
+    assert invalid.status_code == 422
+    assert invalid.json()["detail"] == "interview end_at must be after start_at"
+
+    created = client.post(
+        "/api/applications",
+        json={"company": "Fictional Studio", "role": "Design Intern"},
+    )
+    required_null = client.patch(
+        f"/api/applications/{created.json()['id']}", json={"company": None}
+    )
+    assert required_null.status_code == 422
+    assert required_null.json()["detail"] == "company must not be blank"
+
