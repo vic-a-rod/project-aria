@@ -1,3 +1,8 @@
+export type PriorityExplanation = {
+  score: number;
+  reasons: string[];
+};
+
 export type Task = {
   id: number;
   title: string;
@@ -12,7 +17,7 @@ export type Task = {
   is_fixed: boolean;
   recurrence: string | null;
   notes: string;
-  priority: { score: number; reasons: string[] };
+  priority: PriorityExplanation;
 };
 
 export type NewTask = {

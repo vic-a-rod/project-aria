@@ -180,6 +180,8 @@ write occurs silently.
 
 ### V1-U01 — Modular frontend and local-only assets
 
+Status: complete
+
 Split the monolithic screen into stable feature boundaries and remove runtime
 third-party font requests.
 
