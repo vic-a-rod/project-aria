@@ -6,6 +6,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     database_url: str = "sqlite:///./aria.db"
     cors_origins: str = "http://localhost:5173"
+    api_host: str = "127.0.0.1"
+    time_zone: str = "UTC"
 
     model_config = SettingsConfigDict(env_file=".env", env_prefix="ARIA_")
 

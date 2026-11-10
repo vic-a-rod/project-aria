@@ -28,3 +28,18 @@ FastAPI routes -> task service -> priority engine
 
 A task contains a title, description, category, tags, dates, estimated minutes, importance, completion status, scheduling flexibility, recurrence notes, and audit timestamps. Categories remain strings for the first slice so custom categories work immediately; a normalized category model can be introduced when category-specific settings are implemented.
 
+## Application composition
+
+`app.main` is the production composition root and constructs the API through
+`create_app`. The factory accepts explicit settings, database engine, session
+factory, and clock dependencies. Production uses local defaults; tests create
+isolated application instances with temporary SQLite databases and fixed clocks.
+
+Routes are assembled separately from application construction. This prevents import-
+time database state and establishes the injection boundary that Version 1 provider
+adapters, the typed-command system, and future hosted deployment will use.
+
+Schema creation still uses SQLAlchemy metadata during startup. V1-F03 will replace
+that temporary bootstrap behavior with Alembic migrations and portable UTC timestamp
+persistence.
+

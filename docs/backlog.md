@@ -7,12 +7,16 @@ quality work runs alongside every group.
 
 ### V1-F01 — Reproducible dependencies and CI
 
+Status: complete
+
 Owner: Quality, security, and privacy
 
 Pin compatible dependency ranges and add CI for backend tests/lint, frontend
 build/lint/tests, production dependency audit, and secret/privacy checks.
 
 ### V1-F02 — Application factory and injected configuration
+
+Status: complete
 
 Owner: API/application services
 
