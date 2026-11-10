@@ -33,6 +33,8 @@ and replace startup `create_all` as the schema-evolution mechanism.
 
 ### V1-F04 — Stable layer and command contracts
 
+Status: complete
+
 Owner: Product/architecture with domain and API coordination
 
 Establish `domain`, `application`, `infrastructure`, and `api` boundaries plus a
@@ -226,7 +228,8 @@ from committed changes.
 - V1-Q02: repository and migration integration tests
 - V1-Q03: API and typed-command contract tests
 - V1-Q04: provider adapter tests using fictional fixtures
-- V1-Q05: frontend unit, accessibility, and end-to-end tests
+- V1-Q05: frontend unit, accessibility, and end-to-end tests — in progress; dashboard
+  unit/integration foundation complete
 - V1-Q06: privacy, secret, dependency, and telemetry audit
 - V1-Q07: offline, expired-token, rate-limit, AI-unavailable, partial-sync, corrupted-
   proposal, and restart-recovery tests
