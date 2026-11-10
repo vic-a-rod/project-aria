@@ -7,17 +7,18 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Engine
 
-from app import models  # noqa: F401
-from app.api import create_api_router
-from app.clock import Clock, SystemClock
+from app.api.routes import create_api_router
+from app.application.clock import Clock
 from app.config import Settings
-from app.database import (
+from app.infrastructure import models  # noqa: F401
+from app.infrastructure.clock import SystemClock
+from app.infrastructure.database import (
     Base,
     SessionFactory,
     create_database_engine,
-    create_session_dependency,
     create_session_factory,
 )
+from app.infrastructure.dependencies import create_task_service_dependency
 
 
 def create_app(
@@ -54,11 +55,11 @@ def create_app(
         allow_headers=["*"],
     )
 
-    session_dependency = partial(create_session_dependency, sessions)
-
-    def clock_dependency() -> Clock:
-        return application_clock
-
-    app.include_router(create_api_router(session_dependency, clock_dependency))
+    task_service_dependency = partial(
+        create_task_service_dependency,
+        sessions,
+        application_clock,
+    )
+    app.include_router(create_api_router(task_service_dependency))
     return app
 

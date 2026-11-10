@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from app.priority import calculate_priority
+from app.domain.priority import calculate_priority
 
 
 def test_completed_task_has_zero_priority() -> None:

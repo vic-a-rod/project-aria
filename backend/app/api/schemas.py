@@ -2,6 +2,9 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.application.tasks import TaskFieldValue, TaskView
+from app.domain.tasks import NewTask
+
 
 class TaskFields(BaseModel):
     title: str = Field(min_length=1, max_length=200)
@@ -32,7 +35,8 @@ class TaskFields(BaseModel):
 
 
 class TaskCreate(TaskFields):
-    pass
+    def to_domain(self) -> NewTask:
+        return NewTask(**self.model_dump(exclude={"tags"}), tags=tuple(self.tags))
 
 
 class TaskUpdate(BaseModel):
@@ -49,6 +53,12 @@ class TaskUpdate(BaseModel):
     recurrence: str | None = Field(default=None, max_length=120)
     notes: str | None = None
 
+    def to_changes(self) -> dict[str, TaskFieldValue]:
+        changes = self.model_dump(exclude_unset=True)
+        if "tags" in changes:
+            changes["tags"] = tuple(changes["tags"] or ())
+        return changes
+
 
 class PriorityExplanation(BaseModel):
     score: float
@@ -62,4 +72,29 @@ class TaskRead(TaskFields):
     priority: PriorityExplanation
 
     model_config = ConfigDict(from_attributes=True)
+
+    @classmethod
+    def from_view(cls, view: TaskView) -> "TaskRead":
+        task = view.task
+        return cls(
+            id=task.id,
+            title=task.title,
+            description=task.description,
+            category=task.category,
+            tags=list(task.tags),
+            start_date=task.start_date,
+            due_date=task.due_date,
+            estimated_minutes=task.estimated_minutes,
+            importance=task.importance,
+            is_completed=task.is_completed,
+            is_fixed=task.is_fixed,
+            recurrence=task.recurrence,
+            notes=task.notes,
+            created_at=task.created_at,
+            updated_at=task.updated_at,
+            priority=PriorityExplanation(
+                score=view.priority.score,
+                reasons=view.priority.reasons,
+            ),
+        )
 

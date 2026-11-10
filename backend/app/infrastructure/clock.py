@@ -1,15 +1,6 @@
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
-from typing import Protocol
 from zoneinfo import ZoneInfo
-
-
-class Clock(Protocol):
-    """Application time source used by use cases and deterministic calculations."""
-
-    def now(self) -> datetime: ...
-
-    def today(self) -> date: ...
 
 
 @dataclass(frozen=True)

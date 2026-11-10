@@ -3,14 +3,14 @@ from datetime import UTC, date, datetime
 from sqlalchemy import Boolean, Date, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.database import Base
+from app.infrastructure.database import Base
 
 
 def utc_now() -> datetime:
     return datetime.now(UTC)
 
 
-class Task(Base):
+class TaskRow(Base):
     __tablename__ = "tasks"
 
     id: Mapped[int] = mapped_column(primary_key=True)

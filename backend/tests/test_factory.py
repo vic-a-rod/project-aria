@@ -4,8 +4,8 @@ from datetime import UTC, date, datetime
 from fastapi.testclient import TestClient
 
 from app.config import Settings
-from app.database import create_database_engine, create_session_factory
 from app.factory import create_app
+from app.infrastructure.database import create_database_engine, create_session_factory
 
 
 @dataclass(frozen=True)

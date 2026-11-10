@@ -43,3 +43,37 @@ Schema creation still uses SQLAlchemy metadata during startup. V1-F03 will repla
 that temporary bootstrap behavior with Alembic migrations and portable UTC timestamp
 persistence.
 
+## Layer boundaries
+
+The backend is a modular monolith with four explicit layers:
+
+```text
+api -> application -> domain
+             ^          ^
+             |          |
+       infrastructure --+
+```
+
+- `domain` contains framework-free task models and deterministic engines.
+- `application` contains use cases, repository/clock ports, typed command contracts,
+  and transport-neutral dispatch.
+- `infrastructure` contains SQLAlchemy rows and repositories, database/session
+  construction, system time, and future provider adapters.
+- `api` maps HTTP schemas and errors to application services without owning business
+  rules.
+
+Boundary tests reject FastAPI, SQLAlchemy, model-provider, and audio imports from the
+domain and application layers.
+
+## Permanent command contract
+
+Every future text, voice, web, mobile, or household-device request enters Aria through
+a versioned `CommandEnvelope`. It carries actor/profile identity, source channel,
+correlation and idempotency identifiers, locale, time zone, typed arguments, and an
+optional confirmation token.
+
+`CommandResult` returns structured data plus warnings, evidence, action proposals,
+confirmation requirements, a display summary, and concise speakable text. The
+contract is present before an LLM is introduced so language providers can interpret
+requests but never gain authority to calculate or mutate directly.
+
