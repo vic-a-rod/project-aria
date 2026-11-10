@@ -52,7 +52,13 @@ Open `http://localhost:5173`.
 
 ## Data and privacy
 
-Local databases, environment files, credentials, tokens, and real personal data are ignored by Git. Only fictional sample data should appear in issues, tests, screenshots, or documentation.
+Every clone starts empty. Jarvis does not ship with the maintainer's tasks, calendar,
+applications, preferences, database, credentials, or machine-specific configuration.
+
+Local databases, environment files, credentials, tokens, and real personal data are
+ignored by Git. Only fictional sample data should appear in issues, tests,
+screenshots, or documentation. See [docs/privacy.md](docs/privacy.md) for the data
+boundary contributors must preserve.
 
 ## Development principles
 
@@ -61,4 +67,8 @@ Local databases, environment files, credentials, tokens, and real personal data 
 - Treat rest and unscheduled time as valid planning results.
 - Keep integrations read-only until users explicitly grant narrower permissions.
 - Prefer small, reviewable changes with tests.
+
+## License
+
+Project Jarvis is available under the [MIT License](LICENSE).
 
