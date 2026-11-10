@@ -39,9 +39,17 @@ Routes are assembled separately from application construction. This prevents imp
 time database state and establishes the injection boundary that Version 1 provider
 adapters, the typed-command system, and future hosted deployment will use.
 
-Schema creation still uses SQLAlchemy metadata during startup. V1-F03 will replace
-that temporary bootstrap behavior with Alembic migrations and portable UTC timestamp
-persistence.
+Application startup upgrades the injected database engine to the packaged Alembic
+head revision. A clean installation builds its schema from migrations; a database
+created by the pre-Alembic foundation is stamped only after its task columns exactly
+match the known legacy schema. Unknown schemas fail closed instead of being silently
+adopted.
+
+Timestamp columns use the infrastructure `UtcDateTime` adapter. It requires aware
+inputs, stores a portable normalized UTC value, and restores an aware UTC instant
+when SQLite or another driver returns a timezone-naive value. API timestamps remain
+RFC 3339-compatible while application and domain layers stay independent of the
+database representation.
 
 ## Layer boundaries
 

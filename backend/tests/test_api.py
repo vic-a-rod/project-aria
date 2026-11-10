@@ -49,7 +49,7 @@ def test_task_lifecycle_uses_injected_clock(client: TestClient) -> None:
     )
     assert created.status_code == 201
     task = created.json()
-    assert task["created_at"] == "2026-11-09T17:00:00"
+    assert task["created_at"] == "2026-11-09T17:00:00Z"
     assert task["priority"]["score"] == 85
 
     listed = client.get("/api/tasks", params={"category": "Education"})

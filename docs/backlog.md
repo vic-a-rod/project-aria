@@ -26,6 +26,8 @@ locally by default.
 
 ### V1-F03 — Migrations and portable persistence
 
+Status: complete
+
 Owner: Data and migrations
 
 Add Alembic, test upgrades from an empty database, introduce portable identifiers,

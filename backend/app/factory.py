@@ -13,12 +13,12 @@ from app.config import Settings
 from app.infrastructure import models  # noqa: F401
 from app.infrastructure.clock import SystemClock
 from app.infrastructure.database import (
-    Base,
     SessionFactory,
     create_database_engine,
     create_session_factory,
 )
 from app.infrastructure.dependencies import create_task_service_dependency
+from app.infrastructure.migrations_runner import upgrade_database
 
 
 def create_app(
@@ -35,7 +35,7 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-        Base.metadata.create_all(bind=database_engine)
+        upgrade_database(database_engine)
         try:
             yield
         finally:
