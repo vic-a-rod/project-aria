@@ -145,3 +145,88 @@ def test_task_search_filters_sort_and_pagination(client: TestClient) -> None:
     assert page.status_code == 200
     assert [task["title"] for task in page.json()] == ["Beta application form"]
 
+
+def test_timed_event_lifecycle_preserves_time_zone_and_provenance(client: TestClient) -> None:
+    created = client.post(
+        "/api/events",
+        json={
+            "title": "Fictional advising appointment",
+            "kind": "appointment",
+            "start_at": "2026-11-10T09:00:00-07:00",
+            "end_at": "2026-11-10T09:45:00-07:00",
+            "time_zone": "America/Phoenix",
+            "is_fixed": True,
+            "location": "Fictional campus office",
+            "calendar_name": "Education",
+            "source_type": "calendar",
+            "source_reference": "fictional-event-41",
+        },
+    )
+    assert created.status_code == 201
+    event = created.json()
+    assert event["start_at"] == "2026-11-10T16:00:00Z"
+    assert event["time_zone"] == "America/Phoenix"
+    assert event["source_type"] == "calendar"
+    assert event["created_at"] == "2026-11-09T17:00:00Z"
+
+    listed = client.get(
+        "/api/events",
+        params={"kind": "appointment", "fixed": True, "source": "calendar"},
+    )
+    assert [item["id"] for item in listed.json()] == [event["id"]]
+
+    updated = client.patch(
+        f"/api/events/{event['id']}",
+        json={"is_fixed": False, "blocks_time": False},
+    )
+    assert updated.status_code == 200
+    assert updated.json()["is_fixed"] is False
+    assert updated.json()["blocks_time"] is False
+
+    assert client.delete(f"/api/events/{event['id']}").status_code == 204
+    assert client.get("/api/events").json() == []
+
+
+def test_all_day_recurring_commitment_and_invalid_event_shapes(client: TestClient) -> None:
+    created = client.post(
+        "/api/events",
+        json={
+            "title": "Fictional family day",
+            "kind": "commitment",
+            "all_day": True,
+            "start_date": "2026-11-14",
+            "end_date": "2026-11-15",
+            "time_zone": "America/Phoenix",
+            "recurrence_rule": "FREQ=WEEKLY;BYDAY=SA",
+            "recurrence_time_zone": "America/Phoenix",
+        },
+    )
+    assert created.status_code == 201
+    assert created.json()["start_date"] == "2026-11-14"
+    assert created.json()["start_at"] is None
+
+    invalid_range = client.post(
+        "/api/events",
+        json={
+            "title": "Fictional invalid event",
+            "start_at": "2026-11-10T10:00:00Z",
+            "end_at": "2026-11-10T09:00:00Z",
+        },
+    )
+    assert invalid_range.status_code == 422
+    assert invalid_range.json()["detail"] == "end_at must be after start_at"
+
+    invalid_zone = client.patch(
+        f"/api/events/{created.json()['id']}",
+        json={"time_zone": "Not/AZone"},
+    )
+    assert invalid_zone.status_code == 422
+    assert "valid IANA time zone" in invalid_zone.json()["detail"]
+
+    required_null = client.patch(
+        f"/api/events/{created.json()['id']}",
+        json={"time_zone": None},
+    )
+    assert required_null.status_code == 422
+    assert required_null.json()["detail"] == "time_zone is required"
+

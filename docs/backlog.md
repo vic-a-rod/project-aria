@@ -58,6 +58,8 @@ completion state, search, filtering, and stable sorting.
 
 ### V1-D02 — Events and commitments
 
+Status: complete
+
 Add time-zone-aware events, all-day events, recurrence, fixed/flexible behavior,
 appointments, source provenance, and calendar placement.
 

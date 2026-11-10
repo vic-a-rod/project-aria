@@ -42,6 +42,20 @@ project, tag, and completion filters compose. The application service owns expli
 stable sorting and bounded offset/limit pagination so persistence adapters do not
 embed presentation policy.
 
+## Event and commitment domain
+
+Events use either an exclusive all-day date range or timezone-aware timed bounds;
+the two shapes cannot be mixed. Timed instants are normalized to UTC for storage and
+retain an explicit IANA time zone for display and recurrence interpretation. Event
+kinds distinguish general events, appointments, and commitments. Fixed/flexible and
+busy/free flags are separate so deterministic availability can consume them without
+guessing from presentation text.
+
+Every event records a calendar placement name and provider-neutral provenance type
+plus an optional external reference. External content remains data, never an
+instruction. Revision `20261109_0003` adds the event store without changing existing
+task records.
+
 ## Application composition
 
 `app.main` is the production composition root and constructs the API through

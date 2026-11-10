@@ -76,3 +76,28 @@ class TaskRow(Base):
     project: Mapped[ProjectRow | None] = relationship()
     tags: Mapped[list[TagRow]] = relationship(secondary=task_tags, order_by=TagRow.normalized_name)
 
+
+class EventRow(Base):
+    __tablename__ = "events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(200), index=True)
+    description: Mapped[str] = mapped_column(Text, default="")
+    kind: Mapped[str] = mapped_column(String(32), index=True)
+    all_day: Mapped[bool] = mapped_column(Boolean, default=False)
+    start_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True, index=True)
+    end_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
+    start_date: Mapped[date | None] = mapped_column(Date, nullable=True, index=True)
+    end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    time_zone: Mapped[str] = mapped_column(String(100))
+    is_fixed: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    blocks_time: Mapped[bool] = mapped_column(Boolean, default=True)
+    recurrence_rule: Mapped[str | None] = mapped_column(Text, nullable=True)
+    recurrence_time_zone: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    location: Mapped[str] = mapped_column(String(300), default="")
+    calendar_name: Mapped[str] = mapped_column(String(200), default="Aria")
+    source_type: Mapped[str] = mapped_column(String(32), default="local", index=True)
+    source_reference: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
+

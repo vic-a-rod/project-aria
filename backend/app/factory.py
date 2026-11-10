@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Engine
 
+from app.api.event_routes import create_event_router
 from app.api.routes import create_api_router
 from app.application.clock import Clock
 from app.config import Settings
@@ -17,7 +18,10 @@ from app.infrastructure.database import (
     create_database_engine,
     create_session_factory,
 )
-from app.infrastructure.dependencies import create_task_service_dependency
+from app.infrastructure.dependencies import (
+    create_event_service_dependency,
+    create_task_service_dependency,
+)
 from app.infrastructure.migrations_runner import upgrade_database
 
 
@@ -61,5 +65,11 @@ def create_app(
         application_clock,
     )
     app.include_router(create_api_router(task_service_dependency))
+    event_service_dependency = partial(
+        create_event_service_dependency,
+        sessions,
+        application_clock,
+    )
+    app.include_router(create_event_router(event_service_dependency))
     return app
 
