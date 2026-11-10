@@ -1,23 +1,83 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
 import { MetricCard } from "../components/MetricCard";
 import { StatusMessage } from "../components/StatusMessage";
 import { TaskForm } from "../features/tasks/TaskForm";
+import { DeleteTaskDialog } from "../features/tasks/DeleteTaskDialog";
+import { TaskEditDialog } from "../features/tasks/TaskEditDialog";
 import { TaskList } from "../features/tasks/TaskList";
+import type { Task, TaskUpdate } from "../features/tasks/types";
 import { useTasks } from "../features/tasks/useTasks";
 
 export function DashboardPage() {
   const [filter, setFilter] = useState("All");
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const {
     tasks,
     loading,
     saving,
     updatingIds,
+    deletingIds,
     error,
+    notice,
     retry,
     createTask,
     toggleCompleted,
+    updateTask,
+    deleteTask,
+    clearFeedback,
   } = useTasks();
+
+  function rememberFocus() {
+    returnFocusRef.current = document.activeElement as HTMLElement | null;
+  }
+
+  function restoreTriggerFocus() {
+    queueMicrotask(() => {
+      if (returnFocusRef.current?.isConnected) returnFocusRef.current.focus();
+    });
+  }
+
+  function openEditor(task: Task) {
+    rememberFocus();
+    clearFeedback();
+    setEditingTask(task);
+  }
+
+  function closeEditor() {
+    setEditingTask(null);
+    restoreTriggerFocus();
+  }
+
+  async function saveTask(changes: TaskUpdate): Promise<boolean> {
+    if (!editingTask) return false;
+    const saved = await updateTask(editingTask.id, changes);
+    if (saved) closeEditor();
+    return saved;
+  }
+
+  function openDeleteConfirmation(task: Task) {
+    rememberFocus();
+    clearFeedback();
+    setDeleteTarget(task);
+  }
+
+  function closeDeleteConfirmation() {
+    setDeleteTarget(null);
+    restoreTriggerFocus();
+  }
+
+  async function confirmDelete(): Promise<boolean> {
+    if (!deleteTarget) return false;
+    const deleted = await deleteTask(deleteTarget.id);
+    if (deleted) {
+      setDeleteTarget(null);
+      queueMicrotask(() => document.getElementById("responsibilities-title")?.focus());
+    }
+    return deleted;
+  }
 
   const categories = useMemo(
     () => ["All", ...Array.from(new Set(tasks.map((task) => task.category)))],
@@ -61,7 +121,7 @@ export function DashboardPage() {
             <div className="panel-heading">
               <div>
                 <p className="eyebrow">Prioritized queue</p>
-                <h2 id="responsibilities-title">Your responsibilities</h2>
+                <h2 id="responsibilities-title" tabIndex={-1}>Your responsibilities</h2>
               </div>
               <label className="filter-control">
                 <span>Category</span>
@@ -73,7 +133,10 @@ export function DashboardPage() {
               </label>
             </div>
 
-            {error && <StatusMessage message={error} onRetry={tasks.length === 0 ? retry : undefined} />}
+            {error && !editingTask && !deleteTarget && (
+              <StatusMessage message={error} onRetry={tasks.length === 0 ? retry : undefined} />
+            )}
+            {notice && <StatusMessage message={notice} tone="success" />}
             {loading ? (
               <p className="empty" role="status">
                 Loading your local tasks…
@@ -88,7 +151,14 @@ export function DashboardPage() {
                 </span>
               </div>
             ) : (
-              <TaskList tasks={visibleTasks} updatingIds={updatingIds} onToggle={toggleCompleted} />
+              <TaskList
+                tasks={visibleTasks}
+                updatingIds={updatingIds}
+                deletingIds={deletingIds}
+                onToggle={toggleCompleted}
+                onEdit={openEditor}
+                onDelete={openDeleteConfirmation}
+              />
             )}
           </section>
 
@@ -103,6 +173,25 @@ export function DashboardPage() {
           </aside>
         </div>
       </main>
+
+      {editingTask && (
+        <TaskEditDialog
+          task={editingTask}
+          saving={updatingIds.has(editingTask.id)}
+          error={error}
+          onCancel={closeEditor}
+          onSave={saveTask}
+        />
+      )}
+      {deleteTarget && (
+        <DeleteTaskDialog
+          task={deleteTarget}
+          deleting={deletingIds.has(deleteTarget.id)}
+          error={error}
+          onCancel={closeDeleteConfirmation}
+          onConfirm={confirmDelete}
+        />
+      )}
     </div>
   );
 }

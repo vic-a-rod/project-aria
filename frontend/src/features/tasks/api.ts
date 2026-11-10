@@ -1,5 +1,5 @@
 import { request } from "../../lib/api";
-import type { NewTask, Task } from "./types";
+import type { NewTask, Task, TaskUpdate } from "./types";
 
 export const taskApi = {
   list: () => request<Task[]>("/api/tasks"),
@@ -10,5 +10,11 @@ export const taskApi = {
       method: "PATCH",
       body: JSON.stringify({ is_completed }),
     }),
+  update: (id: number, task: TaskUpdate) =>
+    request<Task>(`/api/tasks/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(task),
+    }),
+  remove: (id: number) => request<void>(`/api/tasks/${id}`, { method: "DELETE" }),
 };
 

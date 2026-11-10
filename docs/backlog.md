@@ -193,6 +193,8 @@ third-party font requests.
 
 ### V1-U02 — Complete responsibility CRUD
 
+Status: in progress — task workflows complete
+
 Build complete task, project, event, application, preference, and commitment
 workflows with pending/success/error feedback and keyboard operation.
 

@@ -3,14 +3,26 @@ import type { Task } from "./types";
 type TaskListProps = {
   tasks: Task[];
   updatingIds: Set<number>;
+  deletingIds: Set<number>;
   onToggle: (task: Task) => void;
+  onEdit: (task: Task) => void;
+  onDelete: (task: Task) => void;
 };
 
-export function TaskList({ tasks, updatingIds, onToggle }: TaskListProps) {
+export function TaskList({
+  tasks,
+  updatingIds,
+  deletingIds,
+  onToggle,
+  onEdit,
+  onDelete,
+}: TaskListProps) {
   return (
     <ul className="task-list">
       {tasks.map((task) => {
         const updating = updatingIds.has(task.id);
+        const deleting = deletingIds.has(task.id);
+        const pending = updating || deleting;
         const action = task.is_completed ? "Reopen" : "Complete";
 
         return (
@@ -21,7 +33,7 @@ export function TaskList({ tasks, updatingIds, onToggle }: TaskListProps) {
               onClick={() => onToggle(task)}
               aria-label={`${action} ${task.title}`}
               aria-pressed={task.is_completed}
-              disabled={updating}
+              disabled={pending}
             >
               {updating ? "…" : task.is_completed ? "✓" : ""}
             </button>
@@ -41,6 +53,26 @@ export function TaskList({ tasks, updatingIds, onToggle }: TaskListProps) {
             <div className="score" aria-label={`Priority score ${task.priority.score}`}>
               <strong>{task.priority.score}</strong>
               <span>priority</span>
+            </div>
+            <div className="task-actions">
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => onEdit(task)}
+                aria-label={`Edit ${task.title}`}
+                disabled={pending}
+              >
+                Edit
+              </button>
+              <button
+                className="text-button danger-text"
+                type="button"
+                onClick={() => onDelete(task)}
+                aria-label={`Delete ${task.title}`}
+                disabled={pending}
+              >
+                Delete
+              </button>
             </div>
           </li>
         );
