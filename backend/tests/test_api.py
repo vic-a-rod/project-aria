@@ -330,3 +330,126 @@ def test_application_rejects_invalid_interview_and_required_null(client: TestCli
     assert required_null.status_code == 422
     assert required_null.json()["detail"] == "company must not be blank"
 
+
+def test_preferences_protected_time_and_temporary_workload_modes(client: TestClient) -> None:
+    protected = client.post(
+        "/api/preferences",
+        json={
+            "kind": "protected_time",
+            "title": "Fictional family evenings",
+            "days_of_week": [0, 1, 2, 3, 4],
+            "start_time": "18:00:00",
+            "end_time": "21:00:00",
+            "time_zone": "America/Phoenix",
+        },
+    )
+    assert protected.status_code == 201, protected.text
+    assert protected.json()["status"] == "active"
+    assert protected.json()["days_of_week"] == [0, 1, 2, 3, 4]
+
+    quiet = client.post(
+        "/api/preferences",
+        json={
+            "kind": "quiet_hours",
+            "title": "Fictional overnight quiet hours",
+            "days_of_week": [0, 1, 2, 3, 4, 5, 6],
+            "start_time": "22:00:00",
+            "end_time": "07:00:00",
+            "time_zone": "America/Phoenix",
+        },
+    )
+    assert quiet.status_code == 201, quiet.text
+
+    mode = client.post(
+        "/api/preferences",
+        json={
+            "kind": "workload_mode",
+            "title": "Fictional exam focus period",
+            "workload_mode": "focus",
+            "effective_from": "2026-11-09T00:00:00Z",
+            "expires_at": "2026-11-12T00:00:00Z",
+        },
+    )
+    assert mode.status_code == 201, mode.text
+
+    effective = client.get("/api/preferences", params={"effective": True})
+    assert effective.status_code == 200
+    assert {item["id"] for item in effective.json()} == {
+        protected.json()["id"],
+        quiet.json()["id"],
+        mode.json()["id"],
+    }
+
+    expired = client.post(
+        "/api/preferences",
+        json={
+            "kind": "workload_mode",
+            "title": "Expired fictional lighter period",
+            "workload_mode": "lighter",
+            "effective_from": "2026-11-01T00:00:00Z",
+            "expires_at": "2026-11-02T00:00:00Z",
+        },
+    )
+    assert expired.status_code == 201
+    assert expired.json()["id"] not in {
+        item["id"] for item in client.get("/api/preferences", params={"effective": True}).json()
+    }
+
+
+def test_suggested_preferences_require_explicit_approval(client: TestClient) -> None:
+    suggested = client.post(
+        "/api/preferences",
+        json={
+            "kind": "general",
+            "title": "Fictional planning preference",
+            "key": "planning.buffer_minutes",
+            "value": "15",
+            "suggested": True,
+            "suggestion_reason": "Fictional repeated scheduling pattern.",
+        },
+    )
+    assert suggested.status_code == 201, suggested.text
+    preference = suggested.json()
+    assert preference["status"] == "suggested"
+    assert preference["approved_at"] is None
+    assert preference["id"] not in {
+        item["id"] for item in client.get("/api/preferences", params={"effective": True}).json()
+    }
+
+    approved = client.post(f"/api/preferences/{preference['id']}/approve")
+    assert approved.status_code == 200
+    assert approved.json()["status"] == "active"
+    assert approved.json()["approved_at"] == "2026-11-09T17:00:00Z"
+    assert preference["id"] in {
+        item["id"] for item in client.get("/api/preferences", params={"effective": True}).json()
+    }
+    assert client.post(f"/api/preferences/{preference['id']}/approve").status_code == 409
+
+    missing_reason = client.post(
+        "/api/preferences",
+        json={
+            "kind": "general",
+            "title": "Invalid fictional suggestion",
+            "key": "planning.invalid",
+            "value": "true",
+            "suggested": True,
+        },
+    )
+    assert missing_reason.status_code == 422
+    assert missing_reason.json()["detail"] == (
+        "suggested preferences require a suggestion_reason"
+    )
+
+
+def test_preference_validation_rejects_non_temporary_workload_mode(client: TestClient) -> None:
+    response = client.post(
+        "/api/preferences",
+        json={
+            "kind": "workload_mode",
+            "title": "Invalid permanent focus mode",
+            "workload_mode": "focus",
+        },
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "workload mode preferences require expires_at"
+

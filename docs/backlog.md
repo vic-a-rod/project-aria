@@ -72,6 +72,8 @@ notes, deadlines, and unified calendar/workload representation.
 
 ### V1-D04 — Preferences and workload overrides
 
+Status: complete
+
 Add explicit preferences, protected time, quiet hours, temporary focus/lighter modes,
 expiration, and approval-required suggested preferences.
 

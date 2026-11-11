@@ -35,6 +35,7 @@ def test_upgrade_from_empty_creates_current_task_schema(tmp_path) -> None:
         "categories",
         "events",
         "projects",
+        "preferences",
         "tags",
         "task_tags",
         "tasks",

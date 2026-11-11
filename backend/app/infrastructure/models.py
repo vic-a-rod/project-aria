@@ -1,6 +1,6 @@
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, time
 
-from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String, Table, Text
+from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String, Table, Text, Time
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database import Base
@@ -171,4 +171,26 @@ class ApplicationFollowUpRow(Base):
     importance: Mapped[int] = mapped_column(Integer, default=3)
     completed_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
     notes: Mapped[str] = mapped_column(Text, default="")
+
+
+class PreferenceRow(Base):
+    __tablename__ = "preferences"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32), index=True)
+    title: Mapped[str] = mapped_column(String(200))
+    key: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    days_of_week: Mapped[str] = mapped_column(String(32), default="")
+    start_time: Mapped[time | None] = mapped_column(Time(), nullable=True)
+    end_time: Mapped[time | None] = mapped_column(Time(), nullable=True)
+    time_zone: Mapped[str] = mapped_column(String(100))
+    workload_mode: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    effective_from: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True, index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    suggestion_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    approved_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
 

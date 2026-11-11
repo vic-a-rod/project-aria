@@ -9,6 +9,7 @@ from sqlalchemy import Engine
 
 from app.api.application_routes import create_application_router
 from app.api.event_routes import create_event_router
+from app.api.preference_routes import create_preference_router
 from app.api.routes import create_api_router
 from app.application.clock import Clock
 from app.config import Settings
@@ -22,6 +23,7 @@ from app.infrastructure.database import (
 from app.infrastructure.dependencies import (
     create_application_service_dependency,
     create_event_service_dependency,
+    create_preference_service_dependency,
     create_task_service_dependency,
 )
 from app.infrastructure.migrations_runner import upgrade_database
@@ -79,5 +81,11 @@ def create_app(
         application_clock,
     )
     app.include_router(create_application_router(application_service_dependency))
+    preference_service_dependency = partial(
+        create_preference_service_dependency,
+        sessions,
+        application_clock,
+    )
+    app.include_router(create_preference_router(preference_service_dependency))
     return app
 

@@ -68,6 +68,19 @@ The application service projects deadlines, non-cancelled interviews, and unfini
 follow-ups into one transport-neutral workload feed. Later calendar, priority, and
 scheduling engines consume that feed instead of duplicating application records.
 
+## Preferences and workload overrides
+
+Preferences are explicit local records: general key/value choices, recurring protected
+time, quiet hours, and temporary focus or lighter-workload modes. Scheduled rules use
+an explicit IANA time zone and weekday/time bounds; overnight quiet hours are valid.
+Workload modes require an expiration so temporary constraints cannot silently become
+permanent.
+
+Suggested preferences remain in a separate `suggested` state and are excluded from
+effective preference queries. Only the explicit approval operation activates them and
+records the approval time; users may instead dismiss them. Expired records remain
+available for history but are excluded from effective queries.
+
 ## Application composition
 
 `app.main` is the production composition root and constructs the API through
