@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Engine
 
+from app.api.action_routes import create_action_router
 from app.api.application_routes import create_application_router
 from app.api.event_routes import create_event_router
 from app.api.preference_routes import create_preference_router
@@ -22,6 +23,7 @@ from app.infrastructure.database import (
     create_session_factory,
 )
 from app.infrastructure.dependencies import (
+    create_action_service_dependency,
     create_application_service_dependency,
     create_event_service_dependency,
     create_preference_service_dependency,
@@ -71,6 +73,12 @@ def create_app(
         application_clock,
     )
     app.include_router(create_api_router(task_service_dependency))
+    action_service_dependency = partial(
+        create_action_service_dependency,
+        sessions,
+        application_clock,
+    )
+    app.include_router(create_action_router(action_service_dependency))
     event_service_dependency = partial(
         create_event_service_dependency,
         sessions,

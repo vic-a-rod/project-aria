@@ -94,6 +94,20 @@ links, and recoverable tombstones. Deduplication is explicit: matching keys supp
 discovery, while a duplicate link requires both records to share their connection and
 resource type. Imported content remains untrusted data and never authorizes an action.
 
+## Proposals, confirmations, notifications, and audit
+
+Consequential actions begin as expiring proposals containing a structured payload, a
+hash of the target state, and normalized evidence. Confirmation tokens are random,
+returned only when issued, and stored solely as SHA-256 hashes. Confirmation requires
+the token and the current state hash; expiry, state drift, replay, and cross-proposal
+use fail closed. A confirmed token is consumed by exactly one persisted execution
+result.
+
+Notification rules are explicit, profile-scoped records with priority, channel,
+enabled, and quiet-hours behavior. Proposal, confirmation, execution, and notification
+rule transitions append audit events with actor, entity, outcome, optional correlation
+ID, and structured details. Audit events have no update or delete application path.
+
 ## Application composition
 
 `app.main` is the production composition root and constructs the API through

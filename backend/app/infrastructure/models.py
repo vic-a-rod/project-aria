@@ -272,3 +272,101 @@ class ExternalRecordRow(Base):
     created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
 
+
+class ActionProposalRow(Base):
+    __tablename__ = "action_proposals"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    profile_id: Mapped[str] = mapped_column(String(100), index=True)
+    action_type: Mapped[str] = mapped_column(String(100), index=True)
+    target_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    target_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    payload_json: Mapped[str] = mapped_column(Text)
+    state_hash: Mapped[str] = mapped_column(String(128))
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    expires_at: Mapped[datetime] = mapped_column(UtcDateTime(), index=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
+    evidence: Mapped[list["ProposalEvidenceRow"]] = relationship(
+        cascade="all, delete-orphan", order_by="ProposalEvidenceRow.observed_at"
+    )
+
+
+class ProposalEvidenceRow(Base):
+    __tablename__ = "proposal_evidence"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    proposal_id: Mapped[str] = mapped_column(
+        ForeignKey("action_proposals.id", ondelete="CASCADE"), index=True
+    )
+    source_type: Mapped[str] = mapped_column(String(100))
+    source_reference: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    summary: Mapped[str] = mapped_column(Text)
+    content_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    observed_at: Mapped[datetime] = mapped_column(UtcDateTime())
+
+
+class ConfirmationRecordRow(Base):
+    __tablename__ = "confirmation_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    proposal_id: Mapped[str] = mapped_column(
+        ForeignKey("action_proposals.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64))
+    state_hash: Mapped[str] = mapped_column(String(128))
+    expires_at: Mapped[datetime] = mapped_column(UtcDateTime(), index=True)
+    confirmed_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
+    consumed_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
+
+
+class ExecutionResultRow(Base):
+    __tablename__ = "execution_results"
+    __table_args__ = (
+        UniqueConstraint("confirmation_id", name="uq_execution_results_confirmation_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    proposal_id: Mapped[str] = mapped_column(
+        ForeignKey("action_proposals.id", ondelete="CASCADE"), index=True
+    )
+    confirmation_id: Mapped[str] = mapped_column(
+        ForeignKey("confirmation_records.id", ondelete="CASCADE"), index=True
+    )
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    summary: Mapped[str] = mapped_column(Text)
+    error_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    executed_at: Mapped[datetime] = mapped_column(UtcDateTime(), index=True)
+
+
+class NotificationRuleRow(Base):
+    __tablename__ = "notification_rules"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    profile_id: Mapped[str] = mapped_column(String(100), index=True)
+    name: Mapped[str] = mapped_column(String(200))
+    event_type: Mapped[str] = mapped_column(String(100), index=True)
+    channel: Mapped[str] = mapped_column(String(100))
+    minimum_priority: Mapped[int] = mapped_column(Integer)
+    quiet_hours_respected: Mapped[bool] = mapped_column(Boolean, default=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
+
+
+class AuditEventRow(Base):
+    __tablename__ = "audit_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    profile_id: Mapped[str] = mapped_column(String(100), index=True)
+    actor_id: Mapped[str] = mapped_column(String(100), index=True)
+    action: Mapped[str] = mapped_column(String(100), index=True)
+    entity_type: Mapped[str] = mapped_column(String(100), index=True)
+    entity_id: Mapped[str] = mapped_column(String(100), index=True)
+    outcome: Mapped[str] = mapped_column(String(32))
+    correlation_id: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    details_json: Mapped[str] = mapped_column(Text)
+    occurred_at: Mapped[datetime] = mapped_column(UtcDateTime(), index=True)
+

@@ -86,6 +86,8 @@ hashes, timestamps, tombstones, provenance, and deduplication state.
 
 ### V1-D06 — Proposals, confirmations, notifications, and audit
 
+Status: complete
+
 Persist proposed actions, evidence, state-bound expiring confirmation records,
 execution results, notification rules, and audit events.
 

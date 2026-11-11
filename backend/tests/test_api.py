@@ -575,3 +575,221 @@ def test_sync_ledger_tracks_duplicates_and_connection_boundaries(client: TestCli
     assert blocked.status_code == 409
     assert blocked.json()["detail"] == "connection must be active to synchronize"
 
+
+def test_proposal_confirmation_execution_and_audit_lifecycle(client: TestClient) -> None:
+    headers = {"X-Aria-Actor": "fictional-operator"}
+    created = client.post(
+        "/api/proposals",
+        headers=headers,
+        json={
+            "action_type": "task.reschedule",
+            "target_type": "task",
+            "target_id": "fictional-task-42",
+            "payload": {"due_date": "2026-11-12"},
+            "state_hash": "sha256:fictional-state-one",
+            "expires_at": "2026-11-10T17:00:00Z",
+            "correlation_id": "fictional-command-100",
+            "evidence": [
+                {
+                    "source_type": "task",
+                    "source_reference": "fictional-task-42",
+                    "summary": "Fictional deadline evidence.",
+                    "content_hash": "sha256:fictional-evidence",
+                    "observed_at": "2026-11-09T16:30:00Z",
+                }
+            ],
+        },
+    )
+    assert created.status_code == 201, created.text
+    proposal = created.json()
+    assert proposal["status"] == "pending"
+    assert proposal["evidence"][0]["source_type"] == "task"
+
+    issued = client.post(
+        f"/api/proposals/{proposal['id']}/confirmations",
+        headers=headers,
+        json={"lifetime_minutes": 10},
+    )
+    assert issued.status_code == 201, issued.text
+    confirmation = issued.json()
+    assert confirmation["token"]
+    assert confirmation["confirmed_at"] is None
+
+    changed_state = client.post(
+        f"/api/confirmations/{confirmation['id']}/confirm",
+        headers=headers,
+        json={
+            "token": confirmation["token"],
+            "current_state_hash": "sha256:fictional-state-two",
+        },
+    )
+    assert changed_state.status_code == 409
+    assert changed_state.json()["detail"] == "target state has changed"
+
+    confirmed = client.post(
+        f"/api/confirmations/{confirmation['id']}/confirm",
+        headers=headers,
+        json={
+            "token": confirmation["token"],
+            "current_state_hash": proposal["state_hash"],
+        },
+    )
+    assert confirmed.status_code == 200, confirmed.text
+    assert confirmed.json()["confirmed_at"] == "2026-11-09T17:00:00Z"
+
+    executed = client.post(
+        f"/api/proposals/{proposal['id']}/execution",
+        headers=headers,
+        json={
+            "confirmation_id": confirmation["id"],
+            "status": "succeeded",
+            "summary": "Applied the fictional due-date change.",
+        },
+    )
+    assert executed.status_code == 201, executed.text
+    assert executed.json()["status"] == "succeeded"
+    assert client.get(f"/api/proposals/{proposal['id']}").json()["status"] == "executed"
+
+    replay = client.post(
+        f"/api/proposals/{proposal['id']}/execution",
+        headers=headers,
+        json={
+            "confirmation_id": confirmation["id"],
+            "status": "succeeded",
+            "summary": "Attempted fictional replay.",
+        },
+    )
+    assert replay.status_code == 409
+
+    audit_events = client.get("/api/audit-events").json()
+    assert {item["action"] for item in audit_events} >= {
+        "proposal.created",
+        "confirmation.issued",
+        "confirmation.confirmed",
+        "proposal.executed",
+    }
+    created_event = next(item for item in audit_events if item["action"] == "proposal.created")
+    assert created_event["actor_id"] == "fictional-operator"
+    assert created_event["correlation_id"] == "fictional-command-100"
+
+
+def test_notification_rule_lifecycle_is_profile_scoped_and_audited(client: TestClient) -> None:
+    created = client.post(
+        "/api/notification-rules",
+        json={
+            "name": "Fictional urgent deadline alerts",
+            "event_type": "deadline.approaching",
+            "channel": "local",
+            "minimum_priority": 4,
+            "quiet_hours_respected": True,
+        },
+    )
+    assert created.status_code == 201, created.text
+    rule = created.json()
+    assert rule["profile_id"] == "local-default"
+
+    updated = client.patch(
+        f"/api/notification-rules/{rule['id']}", json={"enabled": False}
+    )
+    assert updated.status_code == 200
+    assert updated.json()["enabled"] is False
+    required_null = client.patch(
+        f"/api/notification-rules/{rule['id']}", json={"enabled": None}
+    )
+    assert required_null.status_code == 422
+    assert required_null.json()["detail"] == "enabled is required"
+    assert [item["id"] for item in client.get("/api/notification-rules").json()] == [
+        rule["id"]
+    ]
+
+    assert client.delete(f"/api/notification-rules/{rule['id']}").status_code == 204
+    assert client.get("/api/notification-rules").json() == []
+    actions = {item["action"] for item in client.get("/api/audit-events").json()}
+    assert actions >= {
+        "notification_rule.created",
+        "notification_rule.updated",
+        "notification_rule.deleted",
+    }
+
+
+def test_confirmation_expires_and_tokens_are_not_returned_after_issue(tmp_path) -> None:
+    @dataclass
+    class MutableClock:
+        instant: datetime
+
+        def now(self) -> datetime:
+            return self.instant
+
+        def today(self) -> date:
+            return self.instant.date()
+
+    clock = MutableClock(datetime(2026, 11, 9, 17, 0, tzinfo=UTC))
+    settings = Settings(
+        database_url=f"sqlite:///{(tmp_path / 'confirmation.db').as_posix()}",
+        cors_origins="http://localhost:5173",
+        time_zone="UTC",
+        _env_file=None,
+    )
+    app = create_app(settings, clock=clock)
+    with TestClient(app) as test_client:
+        proposal = test_client.post(
+            "/api/proposals",
+            json={
+                "action_type": "event.update",
+                "target_type": "event",
+                "target_id": "fictional-event-9",
+                "state_hash": "sha256:fictional-event-state",
+                "expires_at": "2026-11-09T18:00:00Z",
+            },
+        ).json()
+        issued = test_client.post(
+            f"/api/proposals/{proposal['id']}/confirmations",
+            json={"lifetime_minutes": 5},
+        ).json()
+        clock.instant = datetime(2026, 11, 9, 17, 6, tzinfo=UTC)
+        expired = test_client.post(
+            f"/api/confirmations/{issued['id']}/confirm",
+            json={
+                "token": issued["token"],
+                "current_state_hash": proposal["state_hash"],
+            },
+        )
+        assert expired.status_code == 409
+        assert expired.json()["detail"] == "confirmation has expired or been revoked"
+
+        second_proposal = test_client.post(
+            "/api/proposals",
+            json={
+                "action_type": "event.update",
+                "target_type": "event",
+                "target_id": "fictional-event-10",
+                "state_hash": "sha256:second-fictional-event-state",
+                "expires_at": "2026-11-09T18:00:00Z",
+            },
+        ).json()
+        second_issued = test_client.post(
+            f"/api/proposals/{second_proposal['id']}/confirmations",
+            json={"lifetime_minutes": 5},
+        ).json()
+        assert test_client.post(
+            f"/api/confirmations/{second_issued['id']}/confirm",
+            json={
+                "token": second_issued["token"],
+                "current_state_hash": second_proposal["state_hash"],
+            },
+        ).status_code == 200
+        clock.instant = datetime(2026, 11, 9, 17, 12, tzinfo=UTC)
+        late_execution = test_client.post(
+            f"/api/proposals/{second_proposal['id']}/execution",
+            json={
+                "confirmation_id": second_issued["id"],
+                "status": "succeeded",
+                "summary": "Late fictional execution.",
+            },
+        )
+        assert late_execution.status_code == 409
+        assert late_execution.json()["detail"] == "confirmation has expired"
+
+        audit_text = test_client.get("/api/audit-events").text
+        assert issued["token"] not in audit_text
+
