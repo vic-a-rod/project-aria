@@ -453,3 +453,125 @@ def test_preference_validation_rejects_non_temporary_workload_mode(client: TestC
     assert response.status_code == 422
     assert response.json()["detail"] == "workload mode preferences require expires_at"
 
+
+def test_sync_ledger_upserts_records_and_preserves_provenance(client: TestClient) -> None:
+    connection_response = client.post(
+        "/api/sync/connections",
+        json={
+            "provider": "fictional-calendar",
+            "display_name": "Fictional calendar account",
+        },
+    )
+    assert connection_response.status_code == 201, connection_response.text
+    connection = connection_response.json()
+    assert connection["profile_id"] == "local-default"
+    assert connection["status"] == "active"
+
+    checkpoint = client.put(
+        f"/api/sync/connections/{connection['id']}/checkpoints/events",
+        json={"cursor": "fictional-cursor-1"},
+    )
+    assert checkpoint.status_code == 200
+    assert checkpoint.json()["cursor"] == "fictional-cursor-1"
+    assert checkpoint.json()["last_synced_at"] == "2026-11-09T17:00:00Z"
+
+    payload = {
+        "connection_id": connection["id"],
+        "resource_type": "event",
+        "external_id": "fictional-event-100",
+        "content_hash": "sha256:fictional-one",
+        "source_created_at": "2026-11-01T12:00:00Z",
+        "source_updated_at": "2026-11-08T12:00:00Z",
+        "provenance_kind": "calendar-event",
+        "provenance_reference": "https://example.invalid/events/100",
+        "deduplication_key": "event:fictional-team-review:2026-11-12",
+    }
+    created = client.put("/api/sync/records", json=payload)
+    assert created.status_code == 201, created.text
+    record = created.json()
+    assert record["deduplication_status"] == "unique"
+    assert record["first_seen_at"] == "2026-11-09T17:00:00Z"
+    assert record["provenance_reference"] == payload["provenance_reference"]
+
+    refreshed = client.put(
+        "/api/sync/records",
+        json={**payload, "content_hash": "sha256:fictional-two"},
+    )
+    assert refreshed.status_code == 200
+    assert refreshed.json()["id"] == record["id"]
+    assert refreshed.json()["content_hash"] == "sha256:fictional-two"
+
+    tombstoned = client.post(f"/api/sync/records/{record['id']}/tombstone")
+    assert tombstoned.status_code == 200
+    assert tombstoned.json()["tombstoned_at"] == "2026-11-09T17:00:00Z"
+    assert [
+        item["id"]
+        for item in client.get("/api/sync/records", params={"tombstoned": True}).json()
+    ] == [record["id"]]
+    restored = client.post(f"/api/sync/records/{record['id']}/restore")
+    assert restored.status_code == 200
+    assert restored.json()["tombstoned_at"] is None
+
+
+def test_sync_ledger_tracks_duplicates_and_connection_boundaries(client: TestClient) -> None:
+    first_connection = client.post(
+        "/api/sync/connections",
+        json={"provider": "fictional-mail", "display_name": "Fictional inbox"},
+    ).json()
+    second_connection = client.post(
+        "/api/sync/connections",
+        json={"provider": "fictional-mail", "display_name": "Other fictional inbox"},
+    ).json()
+
+    def create_record(connection_id: str, external_id: str) -> dict:
+        response = client.put(
+            "/api/sync/records",
+            json={
+                "connection_id": connection_id,
+                "resource_type": "message",
+                "external_id": external_id,
+                "content_hash": f"sha256:{external_id}",
+                "provenance_kind": "mail-message",
+                "deduplication_key": "message:fictional-interview-invitation",
+            },
+        )
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    canonical = create_record(first_connection["id"], "fictional-message-a")
+    duplicate = create_record(first_connection["id"], "fictional-message-b")
+    external = create_record(second_connection["id"], "fictional-message-c")
+
+    marked = client.put(
+        f"/api/sync/records/{duplicate['id']}/duplicate",
+        json={"duplicate_of_id": canonical["id"]},
+    )
+    assert marked.status_code == 200
+    assert marked.json()["deduplication_status"] == "duplicate"
+    assert marked.json()["duplicate_of_id"] == canonical["id"]
+
+    cross_connection = client.put(
+        f"/api/sync/records/{external['id']}/duplicate",
+        json={"duplicate_of_id": canonical["id"]},
+    )
+    assert cross_connection.status_code == 409
+    assert "share a connection" in cross_connection.json()["detail"]
+
+    disconnected = client.patch(
+        f"/api/sync/connections/{first_connection['id']}",
+        json={"status": "disconnected"},
+    )
+    assert disconnected.status_code == 200
+    blocked = client.put(
+        "/api/sync/records",
+        json={
+            "connection_id": first_connection["id"],
+            "resource_type": "message",
+            "external_id": "fictional-message-d",
+            "content_hash": "sha256:fictional-message-d",
+            "provenance_kind": "mail-message",
+        },
+    )
+    assert blocked.status_code == 409
+    assert blocked.json()["detail"] == "connection must be active to synchronize"
+

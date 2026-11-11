@@ -1,6 +1,17 @@
 from datetime import UTC, date, datetime, time
 
-from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String, Table, Text, Time
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+    Text,
+    Time,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database import Base
@@ -191,6 +202,73 @@ class PreferenceRow(Base):
     status: Mapped[str] = mapped_column(String(32), index=True)
     suggestion_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     approved_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
+
+
+class ExternalConnectionRow(Base):
+    __tablename__ = "external_connections"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    profile_id: Mapped[str] = mapped_column(String(100), index=True)
+    provider: Mapped[str] = mapped_column(String(100), index=True)
+    display_name: Mapped[str] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
+
+
+class SyncCheckpointRow(Base):
+    __tablename__ = "sync_checkpoints"
+    __table_args__ = (
+        UniqueConstraint(
+            "connection_id", "resource_type", name="uq_sync_checkpoint_identity"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    connection_id: Mapped[str] = mapped_column(
+        ForeignKey("external_connections.id", ondelete="CASCADE"), index=True
+    )
+    resource_type: Mapped[str] = mapped_column(String(100))
+    cursor: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_synced_at: Mapped[datetime] = mapped_column(UtcDateTime())
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
+
+
+class ExternalRecordRow(Base):
+    __tablename__ = "external_records"
+    __table_args__ = (
+        UniqueConstraint(
+            "connection_id",
+            "resource_type",
+            "external_id",
+            name="uq_external_record_identity",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    connection_id: Mapped[str] = mapped_column(
+        ForeignKey("external_connections.id", ondelete="CASCADE"), index=True
+    )
+    resource_type: Mapped[str] = mapped_column(String(100), index=True)
+    external_id: Mapped[str] = mapped_column(String(500))
+    content_hash: Mapped[str] = mapped_column(String(128), index=True)
+    first_seen_at: Mapped[datetime] = mapped_column(UtcDateTime(), index=True)
+    last_seen_at: Mapped[datetime] = mapped_column(UtcDateTime(), index=True)
+    source_created_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
+    source_updated_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
+    tombstoned_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True, index=True)
+    provenance_kind: Mapped[str] = mapped_column(String(100))
+    provenance_reference: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    deduplication_key: Mapped[str | None] = mapped_column(String(500), nullable=True, index=True)
+    deduplication_status: Mapped[str] = mapped_column(String(32), index=True)
+    duplicate_of_id: Mapped[str | None] = mapped_column(
+        ForeignKey("external_records.id", ondelete="SET NULL"), nullable=True
+    )
+    local_record_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    local_record_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
 

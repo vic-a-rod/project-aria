@@ -81,6 +81,19 @@ effective preference queries. Only the explicit approval operation activates the
 records the approval time; users may instead dismiss them. Expired records remain
 available for history but are excluded from effective queries.
 
+## External-source synchronization ledger
+
+External connections have portable UUID identifiers, a local profile scope, a
+provider label, and an explicit active/disconnected/revoked lifecycle. Per-connection
+and per-resource checkpoints store opaque provider cursors without interpreting them.
+
+The external-record ledger keys each item by connection, resource type, and provider
+external ID. Repeated imports update the same record while retaining first/last-seen
+timestamps, content hashes, provider timestamps, provenance, optional local-record
+links, and recoverable tombstones. Deduplication is explicit: matching keys support
+discovery, while a duplicate link requires both records to share their connection and
+resource type. Imported content remains untrusted data and never authorizes an action.
+
 ## Application composition
 
 `app.main` is the production composition root and constructs the API through

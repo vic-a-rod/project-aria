@@ -34,11 +34,14 @@ def test_upgrade_from_empty_creates_current_task_schema(tmp_path) -> None:
         "applications",
         "categories",
         "events",
+        "external_connections",
+        "external_records",
         "projects",
         "preferences",
         "tags",
         "task_tags",
         "tasks",
+        "sync_checkpoints",
     } <= set(inspector.get_table_names())
     assert {column["name"] for column in inspector.get_columns("events")} == {
         "id",

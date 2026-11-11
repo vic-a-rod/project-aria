@@ -79,6 +79,8 @@ expiration, and approval-required suggested preferences.
 
 ### V1-D05 — External-source and synchronization ledger
 
+Status: complete
+
 Store provider-neutral references, connection IDs, external IDs, sync cursors,
 hashes, timestamps, tombstones, provenance, and deduplication state.
 
