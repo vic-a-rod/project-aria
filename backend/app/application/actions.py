@@ -26,6 +26,7 @@ NotificationFieldValue = str | int | bool
 
 
 class ActionRepository(Protocol):
+    def commit(self) -> None: ...
     def list_proposals(
         self, *, profile_id: str, status: ProposalStatus | None = None
     ) -> list[ActionProposal]: ...
@@ -146,6 +147,7 @@ class ActionService:
             correlation_id=correlation_id,
             details={"action_type": created.action_type},
         )
+        self._repository.commit()
         return created
 
     def get_proposal(self, proposal_id: str) -> ActionProposal:
@@ -164,6 +166,7 @@ class ActionService:
                     entity_type="proposal",
                     entity_id=proposal.id,
                 )
+                self._repository.commit()
                 return expired
         return proposal
 
@@ -189,6 +192,7 @@ class ActionService:
             entity_type="proposal",
             entity_id=proposal.id,
         )
+        self._repository.commit()
         return updated
 
     def issue_confirmation(
@@ -218,6 +222,7 @@ class ActionService:
             entity_id=record.id,
             details={"proposal_id": proposal.id},
         )
+        self._repository.commit()
         return IssuedConfirmation(record, token)
 
     def confirm(
@@ -258,6 +263,7 @@ class ActionService:
             entity_id=confirmation.id,
             details={"proposal_id": proposal.id},
         )
+        self._repository.commit()
         return updated
 
     def record_execution(
@@ -313,6 +319,7 @@ class ActionService:
             outcome=status.value,
             details={"execution_result_id": result.id},
         )
+        self._repository.commit()
         return result
 
     def list_notification_rules(
@@ -334,6 +341,7 @@ class ActionService:
             entity_type="notification_rule",
             entity_id=created.id,
         )
+        self._repository.commit()
         return created
 
     def update_notification_rule(
@@ -360,6 +368,7 @@ class ActionService:
             entity_type="notification_rule",
             entity_id=current.id,
         )
+        self._repository.commit()
         return updated
 
     def delete_notification_rule(self, rule_id: str, *, actor_id: str) -> None:
@@ -373,6 +382,7 @@ class ActionService:
             entity_type="notification_rule",
             entity_id=current.id,
         )
+        self._repository.commit()
 
     def list_audit_events(
         self, *, profile_id: str = "local-default", limit: int = 100

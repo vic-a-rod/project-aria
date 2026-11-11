@@ -95,6 +95,16 @@ def test_upgrade_from_empty_creates_current_task_schema(tmp_path) -> None:
     engine.dispose()
 
 
+def test_sqlite_connections_enforce_foreign_keys(tmp_path) -> None:
+    engine = create_database_engine(database_url(tmp_path / "foreign-keys.db"))
+    upgrade_database(engine)
+
+    with engine.connect() as connection:
+        assert connection.scalar(text("PRAGMA foreign_keys")) == 1
+
+    engine.dispose()
+
+
 def test_upgrade_adopts_only_the_known_pre_alembic_schema(tmp_path) -> None:
     engine = create_database_engine(database_url(tmp_path / "legacy.db"))
     upgrade_database(engine, INITIAL_REVISION)

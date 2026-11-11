@@ -95,6 +95,8 @@ def create_synchronization_router(
             )
         except SynchronizationNotFoundError as error:
             raise HTTPException(status_code=404, detail="Connection not found") from error
+        except SynchronizationConflictError as error:
+            raise HTTPException(status_code=409, detail=str(error)) from error
         except ValueError as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
 

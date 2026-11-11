@@ -106,7 +106,10 @@ result.
 Notification rules are explicit, profile-scoped records with priority, channel,
 enabled, and quiet-hours behavior. Proposal, confirmation, execution, and notification
 rule transitions append audit events with actor, entity, outcome, optional correlation
-ID, and structured details. Audit events have no update or delete application path.
+ID, and structured details. Each lifecycle transition and its audit event commit as
+one database transaction; failures roll back confirmation consumption, execution
+results, proposal state, and audit state together. Audit events have no update or
+delete application path.
 
 ## Application composition
 
@@ -123,7 +126,8 @@ Application startup upgrades the injected database engine to the packaged Alembi
 head revision. A clean installation builds its schema from migrations; a database
 created by the pre-Alembic foundation is stamped only after its task columns exactly
 match the known legacy schema. Unknown schemas fail closed instead of being silently
-adopted.
+adopted. SQLite connections explicitly enable foreign-key enforcement so declared
+references and cascade behavior are not silently ignored by the default driver.
 
 Timestamp columns use the infrastructure `UtcDateTime` adapter. It requires aware
 inputs, stores a portable normalized UTC value, and restores an aware UTC instant

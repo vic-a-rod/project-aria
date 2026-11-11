@@ -36,6 +36,9 @@ class SqlAlchemyActionRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
 
+    def commit(self) -> None:
+        self._session.commit()
+
     def _proposal_statement(self):
         return select(ActionProposalRow).options(
             selectinload(ActionProposalRow.evidence)
@@ -88,11 +91,10 @@ class SqlAlchemyActionRepository:
             ],
         )
         self._session.add(row)
-        self._session.commit()
-        self._session.expire_all()
+        self._session.flush()
         created = self.get_proposal(row.id)
         if created is None:  # pragma: no cover
-            raise RuntimeError("Committed proposal could not be reloaded")
+            raise RuntimeError("Proposal could not be reloaded")
         return created
 
     def set_proposal_status(
@@ -103,8 +105,7 @@ class SqlAlchemyActionRepository:
             return None
         row.status = status.value
         row.updated_at = timestamp
-        self._session.commit()
-        self._session.expire_all()
+        self._session.flush()
         return self.get_proposal(proposal_id)
 
     def create_confirmation(
@@ -129,8 +130,7 @@ class SqlAlchemyActionRepository:
             created_at=timestamp,
         )
         self._session.add(row)
-        self._session.commit()
-        self._session.refresh(row)
+        self._session.flush()
         return self._confirmation(row)
 
     def get_confirmation_with_hash(
@@ -146,8 +146,7 @@ class SqlAlchemyActionRepository:
         if row is None:
             return None
         row.confirmed_at = timestamp
-        self._session.commit()
-        self._session.refresh(row)
+        self._session.flush()
         return self._confirmation(row)
 
     def consume_confirmation(
@@ -157,8 +156,7 @@ class SqlAlchemyActionRepository:
         if row is None:
             return None
         row.consumed_at = timestamp
-        self._session.commit()
-        self._session.refresh(row)
+        self._session.flush()
         return self._confirmation(row)
 
     def create_execution_result(
@@ -182,8 +180,7 @@ class SqlAlchemyActionRepository:
             executed_at=timestamp,
         )
         self._session.add(row)
-        self._session.commit()
-        self._session.refresh(row)
+        self._session.flush()
         return self._execution(row)
 
     def list_notification_rules(self, *, profile_id: str) -> list[NotificationRule]:
@@ -205,8 +202,7 @@ class SqlAlchemyActionRepository:
             id=rule_id, **rule.__dict__, created_at=timestamp, updated_at=timestamp
         )
         self._session.add(row)
-        self._session.commit()
-        self._session.refresh(row)
+        self._session.flush()
         return self._notification_rule(row)
 
     def update_notification_rule(
@@ -222,8 +218,7 @@ class SqlAlchemyActionRepository:
         for field, value in changes.items():
             setattr(row, field, value)
         row.updated_at = timestamp
-        self._session.commit()
-        self._session.refresh(row)
+        self._session.flush()
         return self._notification_rule(row)
 
     def delete_notification_rule(self, rule_id: str) -> bool:
@@ -231,7 +226,7 @@ class SqlAlchemyActionRepository:
         if row is None:
             return False
         self._session.delete(row)
-        self._session.commit()
+        self._session.flush()
         return True
 
     def append_audit_event(self, event: AuditEvent) -> None:
@@ -249,7 +244,7 @@ class SqlAlchemyActionRepository:
                 occurred_at=event.occurred_at,
             )
         )
-        self._session.commit()
+        self._session.flush()
 
     def list_audit_events(self, *, profile_id: str, limit: int) -> list[AuditEvent]:
         rows = self._session.scalars(

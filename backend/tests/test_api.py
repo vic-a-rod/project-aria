@@ -440,6 +440,27 @@ def test_suggested_preferences_require_explicit_approval(client: TestClient) -> 
         "suggested preferences require a suggestion_reason"
     )
 
+    expired = client.post(
+        "/api/preferences",
+        json={
+            "kind": "general",
+            "title": "Expired fictional suggestion",
+            "key": "planning.expired",
+            "value": "true",
+            "suggested": True,
+            "suggestion_reason": "Fictional expired observation.",
+            "expires_at": "2026-11-08T17:00:00Z",
+        },
+    )
+    assert expired.status_code == 201
+    expired_approval = client.post(
+        f"/api/preferences/{expired.json()['id']}/approve"
+    )
+    assert expired_approval.status_code == 409
+    assert expired_approval.json()["detail"] == (
+        "expired suggested preferences cannot be approved"
+    )
+
 
 def test_preference_validation_rejects_non_temporary_workload_mode(client: TestClient) -> None:
     response = client.post(
@@ -574,6 +595,14 @@ def test_sync_ledger_tracks_duplicates_and_connection_boundaries(client: TestCli
     )
     assert blocked.status_code == 409
     assert blocked.json()["detail"] == "connection must be active to synchronize"
+    blocked_checkpoint = client.put(
+        f"/api/sync/connections/{first_connection['id']}/checkpoints/messages",
+        json={"cursor": "fictional-cursor-after-disconnect"},
+    )
+    assert blocked_checkpoint.status_code == 409
+    assert blocked_checkpoint.json()["detail"] == (
+        "connection must be active to synchronize"
+    )
 
 
 def test_proposal_confirmation_execution_and_audit_lifecycle(client: TestClient) -> None:

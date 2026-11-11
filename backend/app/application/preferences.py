@@ -94,6 +94,8 @@ class PreferenceService:
         if current.status != PreferenceStatus.SUGGESTED:
             raise PreferenceStateError("only suggested preferences can be approved")
         now = self._clock.now()
+        if current.expires_at is not None and current.expires_at <= now:
+            raise PreferenceStateError("expired suggested preferences cannot be approved")
         updated = self._repository.update(
             preference_id,
             {"status": PreferenceStatus.ACTIVE, "approved_at": now},

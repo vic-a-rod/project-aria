@@ -89,6 +89,12 @@ class SynchronizationService:
             raise SynchronizationNotFoundError(connection_id)
         return connection
 
+    def _get_active_connection(self, connection_id: str) -> ExternalConnection:
+        connection = self.get_connection(connection_id)
+        if connection.status != ConnectionStatus.ACTIVE:
+            raise SynchronizationConflictError("connection must be active to synchronize")
+        return connection
+
     def create_connection(self, connection: NewExternalConnection) -> ExternalConnection:
         validate_connection(connection)
         return self._repository.create_connection(
@@ -109,7 +115,7 @@ class SynchronizationService:
     def checkpoint(
         self, connection_id: str, resource_type: str, cursor: str | None
     ) -> SyncCheckpoint:
-        self.get_connection(connection_id)
+        self._get_active_connection(connection_id)
         if not resource_type.strip():
             raise ValueError("resource_type must not be blank")
         return self._repository.upsert_checkpoint(
@@ -146,9 +152,7 @@ class SynchronizationService:
 
     def upsert_record(self, record: NewExternalRecord) -> tuple[ExternalRecord, bool]:
         validate_external_record(record)
-        connection = self.get_connection(record.connection_id)
-        if connection.status != ConnectionStatus.ACTIVE:
-            raise SynchronizationConflictError("connection must be active to synchronize")
+        self._get_active_connection(record.connection_id)
         existing = self._repository.get_record_by_external_identity(
             record.connection_id, record.resource_type, record.external_id
         )
