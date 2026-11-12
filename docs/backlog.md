@@ -99,6 +99,8 @@ Version 3.
 
 ### V1-E01 — Explainable priority engine
 
+Status: complete
+
 Calculate priorities for tasks, events, deadlines, applications, and follow-ups using
 configurable weights, explicit time, structured score components, and reason codes.
 

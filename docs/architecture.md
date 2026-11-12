@@ -68,6 +68,18 @@ The application service projects deadlines, non-cancelled interviews, and unfini
 follow-ups into one transport-neutral workload feed. Later calendar, priority, and
 scheduling engines consume that feed instead of duplicating application records.
 
+## Explainable priority engine
+
+One pure engine scores tasks, events, deadlines, applications, and follow-ups from a
+typed responsibility input. Callers must supply an aware current instant; the engine
+never reads the system clock. Weight sets are immutable inputs, so configuration can
+change policy without hiding calculations in persistence or presentation code.
+
+Every result contains stable reason codes and point-bearing components in addition
+to display text. Component points reconcile exactly to the bounded score, including
+an explicit cap adjustment when a raw total falls outside 0–100. Completed items
+return zero without urgency or effort bonuses.
+
 ## Preferences and workload overrides
 
 Preferences are explicit local records: general key/value choices, recurring protected

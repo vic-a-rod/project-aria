@@ -54,6 +54,14 @@ def test_task_lifecycle_uses_injected_clock(client: TestClient) -> None:
     task = created.json()
     assert task["created_at"] == "2026-11-09T17:00:00Z"
     assert task["priority"]["score"] == 85
+    assert task["priority"]["reason_codes"] == [
+        "importance",
+        "due_today",
+        "quick_win",
+    ]
+    assert sum(
+        component["points"] for component in task["priority"]["components"]
+    ) == task["priority"]["score"]
     assert task["project"] == "Fictional coursework"
     assert task["recurrence"] == "FREQ=WEEKLY;BYDAY=MO"
     assert task["completed_at"] is None

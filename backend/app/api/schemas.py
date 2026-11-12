@@ -94,6 +94,14 @@ class TaskUpdate(BaseModel):
 class PriorityExplanation(BaseModel):
     score: float
     reasons: list[str]
+    reason_codes: list[str]
+    components: list["PriorityComponentExplanation"]
+
+
+class PriorityComponentExplanation(BaseModel):
+    code: str
+    points: float
+    detail: str
 
 
 class TaskRead(TaskFields):
@@ -130,6 +138,15 @@ class TaskRead(TaskFields):
             priority=PriorityExplanation(
                 score=view.priority.score,
                 reasons=view.priority.reasons,
+                reason_codes=view.priority.reason_codes,
+                components=[
+                    PriorityComponentExplanation(
+                        code=component.code.value,
+                        points=component.points,
+                        detail=component.detail,
+                    )
+                    for component in view.priority.components
+                ],
             ),
         )
 
