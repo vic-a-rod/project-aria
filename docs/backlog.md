@@ -106,6 +106,8 @@ configurable weights, explicit time, structured score components, and reason cod
 
 ### V1-E02 — Availability and conflict engine
 
+Status: complete
+
 Calculate free intervals using fixed commitments, flexible work, protected time,
 rest, time zones, and recurrence. Detect conflicts deterministically.
 

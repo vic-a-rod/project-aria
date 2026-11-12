@@ -80,6 +80,21 @@ to display text. Component points reconcile exactly to the bounded score, includ
 an explicit cap adjustment when a raw total falls outside 0–100. Completed items
 return zero without urgency or effort bonuses.
 
+## Availability and conflict engine
+
+Availability is calculated by a pure UTC-normalizing engine over an explicit window
+and typed blocks. Fixed commitments, protected time, and rest are hard constraints;
+flexible work occupies ordinary free time but remains visible in a separate hard-free
+result so later scheduling can move it. Overlaps between hard constraints are hard
+conflicts, while overlaps involving flexible work are classified as resolvable.
+
+Recurring wall-clock blocks retain an IANA time zone and preserve local times across
+offset changes. The engine currently supports the Version 1 recurrence subset used
+by tasks, events, protected time, and quiet hours: daily or weekly frequency plus
+`INTERVAL`, `BYDAY`, `COUNT`, and `UNTIL`. Unsupported frequencies fail explicitly
+instead of being approximated. Free intervals, occurrences, and conflicts are sorted
+stably and returned without mutating persisted records.
+
 ## Preferences and workload overrides
 
 Preferences are explicit local records: general key/value choices, recurring protected
