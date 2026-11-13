@@ -127,6 +127,8 @@ protected family/rest periods, and legitimate unscheduled time.
 
 ### V1-E05 — Proactive recommendation rules
 
+Status: complete
+
 Generate configurable, deduplicated local recommendations for deadlines, overdue
 work, conflicts, interviews, follow-ups, available time, and quiet hours.
 

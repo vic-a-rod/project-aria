@@ -122,6 +122,21 @@ overload warning rather than expanding the workday, deleting protected time, or
 silently dropping responsibilities. Focus and capacity deferrals remain structured
 and attributable.
 
+## Proactive recommendation rules
+
+Typed local signals feed a pure recommendation engine for approaching and overdue
+deadlines, conflicts, interviews, follow-ups, useful free intervals, and active quiet
+hours. Policy inputs control enabled rule codes, lookahead windows, priority and
+available-time thresholds, and whether critical recommendations may bypass quiet
+hours.
+
+Every recommendation carries a stable deduplication key, severity, delivery state,
+and validity bound. Callers pass previously emitted keys, so repeated evaluations do
+not recreate the same recommendation. Quiet hours defer noncritical delivery rather
+than discarding evidence; critical alerts remain configurable. Generation itself is
+local, deterministic, and side-effect free—notification persistence and delivery
+remain separate application concerns.
+
 ## Preferences and workload overrides
 
 Preferences are explicit local records: general key/value choices, recurring protected
