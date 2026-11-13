@@ -95,6 +95,19 @@ by tasks, events, protected time, and quiet hours: daily or weekly frequency plu
 instead of being approximated. Free intervals, occurrences, and conflicts are sorted
 stably and returned without mutating persisted records.
 
+## Scheduling and simulation engine
+
+Scheduling consumes hard-free intervals from the availability engine and immutable
+responsibility inputs. It produces separate priority-first and deadline-first
+proposals; neither proposal writes to storage. Fixed records and externally sourced
+commitments are locked to their current placements, including when they conflict.
+
+Each proposal contains UTC placements, a stable before/after diff, unscheduled
+references, scheduled effort, and structured risks for overdue work, deadline
+pressure, insufficient capacity, and locked conflicts. Flexible work is allocated as
+one contiguous interval and never placed after its deadline. Applying a selected
+proposal remains a separate confirmed action handled by the proposal lifecycle.
+
 ## Preferences and workload overrides
 
 Preferences are explicit local records: general key/value choices, recurring protected

@@ -113,6 +113,8 @@ rest, time zones, and recurrence. Detect conflicts deterministically.
 
 ### V1-E03 — Scheduling and simulation engine
 
+Status: complete
+
 Produce alternative schedules, risk reports, and structured diffs without mutating
 persisted state or moving fixed/external commitments.
 
