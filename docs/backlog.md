@@ -120,6 +120,8 @@ persisted state or moving fixed/external commitments.
 
 ### V1-E04 — Sustainable workload engine
 
+Status: complete
+
 Support temporary lighter/focused modes, deadline preservation, overload warnings,
 protected family/rest periods, and legitimate unscheduled time.
 

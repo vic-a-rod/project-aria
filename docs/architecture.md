@@ -108,6 +108,20 @@ pressure, insufficient capacity, and locked conflicts. Flexible work is allocate
 one contiguous interval and never placed after its deadline. Applying a selected
 proposal remains a separate confirmed action handled by the proposal lifecycle.
 
+## Sustainable workload engine
+
+The sustainable-workload layer limits schedule simulation by local-day capacity and
+always reserves unscheduled time. A temporary lighter mode reduces the daily ceiling;
+a focus mode defers out-of-scope work only when doing so cannot hide a deadline in the
+planning horizon. Expired modes revert to normal automatically.
+
+Protected family and rest intervals are subtracted again at this boundary as a
+defense in depth. Results report scheduled, capacity, and genuinely unscheduled
+minutes per local day. Deadline-bound effort above sustainable capacity produces an
+overload warning rather than expanding the workday, deleting protected time, or
+silently dropping responsibilities. Focus and capacity deferrals remain structured
+and attributable.
+
 ## Preferences and workload overrides
 
 Preferences are explicit local records: general key/value choices, recurring protected
