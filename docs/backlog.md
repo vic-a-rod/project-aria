@@ -154,6 +154,8 @@ proposals for consequential mutations; enforce actor/profile boundaries.
 
 ### V1-C03 — Replaceable language-model adapter
 
+Status: complete
+
 Support cloud and future local language providers through a bounded adapter. Models
 never receive database access, provider credentials, or authority to execute.
 

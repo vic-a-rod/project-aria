@@ -258,3 +258,18 @@ rejected, request clarification, or return proposals, but it cannot report succe
 execution. A confirmed mutation may report success only after its application handler
 validates and consumes the confirmation through the proposal lifecycle.
 
+## Language-model adapter
+
+Natural-language providers implement one bounded `LanguageModelAdapter` port. Cloud
+and future local adapters receive only an explicit instruction, user text, allowed
+command names, attributable context items, a correlation ID, and an output-size
+limit. The port exposes no repository, database session, credential vault, command
+dispatcher, or execution callback.
+
+`LanguageModelGateway` verifies response identity, nonblank content, and the requested
+output bound before any interpretation layer may consume provider output. Provider
+content remains untrusted data; Version 1 command validation and authorization still
+determine what may be proposed or executed. The composition root injects the gateway,
+and the default disabled adapter keeps every deterministic feature available when no
+model is configured.
+
