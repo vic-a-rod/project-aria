@@ -161,6 +161,8 @@ never receive database access, provider credentials, or authority to execute.
 
 ### V1-C04 — Typed natural-language interpretation
 
+Status: complete
+
 Interpret task/event/application commands, priority and calendar questions, schedule
 simulations, workload changes, and email/calendar queries into typed commands.
 

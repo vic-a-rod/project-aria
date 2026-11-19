@@ -273,3 +273,18 @@ determine what may be proposed or executed. The composition root injects the gat
 and the default disabled adapter keeps every deterministic feature available when no
 model is configured.
 
+## Typed natural-language interpretation
+
+`NaturalLanguageInterpreter` gives a model an explicit catalog of supported read and
+proposed-mutation intents and accepts only one strict JSON intent object in return.
+The catalog covers tasks, events, applications, priority explanations, local calendar
+and workload questions, schedule simulation/application, temporary workload modes,
+and read-only email or external-calendar queries.
+
+Provider output cannot set actor identity, profile identity, source channel, locale,
+time zone, correlation, idempotency, or confirmation data. Those values come from the
+trusted transport request. Unknown commands, extra fields, malformed JSON, intent-kind
+mismatches, and mutations without a transport idempotency key fail before dispatch.
+Interpretation never calls a repository, deterministic engine, command handler, or
+external integration and therefore cannot execute the command it proposes.
+

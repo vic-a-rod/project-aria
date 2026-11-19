@@ -74,7 +74,7 @@ class ResourceReference(BaseModel):
     resource_type: str = Field(min_length=1, max_length=100)
     resource_id: str = Field(min_length=1, max_length=500)
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
 
 class ReadIntent(BaseModel):
@@ -82,7 +82,7 @@ class ReadIntent(BaseModel):
     name: CommandName
     arguments: dict[str, JsonValue] = Field(default_factory=dict)
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
 
 class ProposedMutationIntent(BaseModel):
@@ -92,7 +92,7 @@ class ProposedMutationIntent(BaseModel):
     arguments: dict[str, JsonValue] = Field(default_factory=dict)
     reason: str = Field(min_length=1, max_length=1000)
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
 
 CommandIntent = Annotated[
