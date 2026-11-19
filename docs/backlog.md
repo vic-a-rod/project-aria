@@ -140,6 +140,8 @@ explicit clock and time zone.
 
 ### V1-C01 — Versioned intents, commands, and results
 
+Status: complete
+
 Define typed reads, proposed mutations, clarification requests, evidence references,
 confirmation requirements, display summaries, and concise speakable responses.
 

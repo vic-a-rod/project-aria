@@ -235,11 +235,18 @@ domain and application layers.
 
 Every future text, voice, web, mobile, or household-device request enters Aria through
 a versioned `CommandEnvelope`. It carries actor/profile identity, source channel,
-correlation and idempotency identifiers, locale, time zone, typed arguments, and an
-optional confirmation token.
+correlation and idempotency identifiers, locale, time zone, a discriminated intent,
+and an optional confirmation token. Read intents and proposed-mutation intents are
+different wire types. Mutations require an idempotency key, identify an optional
+target, explain why they were requested, and never imply authority to execute.
 
 `CommandResult` returns structured data plus warnings, evidence, action proposals,
 confirmation requirements, a display summary, and concise speakable text. The
 contract is present before an LLM is introduced so language providers can interpret
 requests but never gain authority to calculate or mutate directly.
+
+Result lifecycle metadata is fail-closed: clarification status requires a structured
+question and answer mode, proposal status requires at least one proposal, and a
+confirmation must reference a proposal returned in the same result. Evidence sources
+use provider-neutral types and optional timezone-aware observation timestamps.
 
