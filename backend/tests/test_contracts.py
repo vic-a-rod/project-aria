@@ -4,6 +4,7 @@ from uuid import UUID, uuid4
 import pytest
 from pydantic import ValidationError
 
+from app.application.authorization import AuthorizationContext
 from app.application.contracts import (
     ActionProposal,
     ActorContext,
@@ -14,6 +15,7 @@ from app.application.contracts import (
     ConfirmationRequirement,
     EvidenceReference,
     EvidenceSourceType,
+    IntentKind,
     ProposedMutationIntent,
     ReadIntent,
     ResourceReference,
@@ -253,16 +255,19 @@ def test_dispatcher_preserves_command_identity() -> None:
             speakable_text="No tasks matched.",
         )
 
-    dispatcher.register("tasks.list", handler)
-    result = dispatcher.dispatch(command)
+    authorization = AuthorizationContext.local(
+        actor_id="local-user", profile_id="local-profile"
+    )
+    dispatcher.register("tasks.list", IntentKind.READ, handler)
+    result = dispatcher.dispatch(command, authorization)
 
     assert result.correlation_id == command.correlation_id
     assert result.data == {"tasks": []}
 
     with pytest.raises(DuplicateCommandHandlerError):
-        dispatcher.register("tasks.list", handler)
+        dispatcher.register("tasks.list", IntentKind.READ, handler)
     with pytest.raises(UnknownCommandError):
-        dispatcher.dispatch(make_read_command("tasks.unknown"))
+        dispatcher.dispatch(make_read_command("tasks.unknown"), authorization)
 
 
 def test_confirmation_requires_a_matching_proposal() -> None:

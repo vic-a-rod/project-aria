@@ -250,3 +250,11 @@ question and answer mode, proposal status requires at least one proposal, and a
 confirmation must reference a proposal returned in the same result. Evidence sources
 use provider-neutral types and optional timezone-aware observation timestamps.
 
+The command dispatcher receives a trusted `AuthorizationContext` from its transport
+boundary and compares it with the actor and profile claimed by the envelope before
+route lookup or handler execution. Routes are registered for exactly one intent kind,
+so a mutation cannot enter a read handler. An unconfirmed proposed mutation may be
+rejected, request clarification, or return proposals, but it cannot report successful
+execution. A confirmed mutation may report success only after its application handler
+validates and consumes the confirmation through the proposal lifecycle.
+

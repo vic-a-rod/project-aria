@@ -147,6 +147,8 @@ confirmation requirements, display summaries, and concise speakable responses.
 
 ### V1-C02 — Command dispatcher and authorization policy
 
+Status: complete
+
 Route validated commands to application use cases. Permit safe reads; require
 proposals for consequential mutations; enforce actor/profile boundaries.
 
