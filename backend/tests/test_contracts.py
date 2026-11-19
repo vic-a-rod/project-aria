@@ -137,6 +137,7 @@ def test_result_carries_evidence_proposal_warning_and_confirmation() -> None:
             ),
         ),
         confirmation=ConfirmationRequirement(
+            confirmation_id=uuid4(),
             proposal_id=proposal_id,
             token="fictional-confirmation-token",
             expires_at=expires_at,
@@ -284,6 +285,7 @@ def test_confirmation_requires_a_matching_proposal() -> None:
                 ),
             ),
             confirmation=ConfirmationRequirement(
+                confirmation_id=uuid4(),
                 proposal_id=uuid4(),
                 token="fictional-token",
                 expires_at=datetime.now(UTC) + timedelta(minutes=5),

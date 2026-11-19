@@ -168,6 +168,8 @@ simulations, workload changes, and email/calendar queries into typed commands.
 
 ### V1-C05 — Evidence, preview, clarification, and confirmation
 
+Status: complete
+
 Show sources, reasoning, proposed changes, ambiguity, risks, and expiring confirmation
 tokens before execution.
 

@@ -288,3 +288,19 @@ mismatches, and mutations without a transport idempotency key fail before dispat
 Interpretation never calls a repository, deterministic engine, command handler, or
 external integration and therefore cannot execute the command it proposes.
 
+## Command evidence, previews, and confirmation
+
+Command handlers present reads, ambiguity, and proposed mutations through one
+transport-neutral result builder. Results can carry attributable source references,
+structured reasoning codes and details, warnings/risks, display text, and concise
+speakable text. Clarification results include an explicit field, question, reason,
+answer choices, and optional free-text path.
+
+A mutation preview must include at least one actual before/after change, one evidence
+item with an observation time, deterministic reasoning, a current-state hash, and an
+expiration. The presenter persists that material through the proposal lifecycle and
+issues a shorter-lived confirmation token. Only the token is returned; its SHA-256
+hash is stored. The result includes both proposal and confirmation identifiers so a
+later request can recompute the target state, validate the token, and consume it once.
+Creating the preview never calls the mutation use case or records an execution.
+

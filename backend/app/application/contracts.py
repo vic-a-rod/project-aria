@@ -161,17 +161,41 @@ class EvidenceReference(BaseModel):
         return value
 
 
+class ReasoningDetail(BaseModel):
+    code: str = Field(min_length=1, max_length=100)
+    summary: str = Field(min_length=1, max_length=1000)
+    details: dict[str, JsonValue] = Field(default_factory=dict)
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+
+class ProposedChange(BaseModel):
+    field: str = Field(min_length=1, max_length=200)
+    before: JsonValue = None
+    after: JsonValue = None
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    @model_validator(mode="after")
+    def validate_changed_value(self) -> "ProposedChange":
+        if self.before == self.after:
+            raise ValueError("proposed change before and after values must differ")
+        return self
+
+
 class ActionProposal(BaseModel):
     proposal_id: UUID
     action: CommandName
     summary: str = Field(min_length=1, max_length=1000)
     target: ResourceReference | None = None
     arguments: dict[str, JsonValue] = Field(default_factory=dict)
+    changes: tuple[ProposedChange, ...] = ()
 
     model_config = ConfigDict(frozen=True)
 
 
 class ConfirmationRequirement(BaseModel):
+    confirmation_id: UUID
     proposal_id: UUID
     token: str = Field(min_length=1, max_length=500)
     expires_at: datetime
@@ -221,6 +245,7 @@ class CommandResult(BaseModel):
     data: dict[str, JsonValue] = Field(default_factory=dict)
     warnings: tuple[WarningDetail, ...] = ()
     evidence: tuple[EvidenceReference, ...] = ()
+    reasoning: tuple[ReasoningDetail, ...] = ()
     proposals: tuple[ActionProposal, ...] = ()
     clarification: ClarificationRequest | None = None
     confirmation: ConfirmationRequirement | None = None
