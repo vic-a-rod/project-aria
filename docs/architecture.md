@@ -24,6 +24,22 @@ FastAPI routes -> task service -> priority engine
 4. **Portable boundaries:** database configuration and API URLs come from environment variables so deployment can evolve without replacing domain logic.
 5. **Safe integrations:** external calendar and email adapters will be isolated and begin read-only.
 
+## Local demo profiles
+
+The demo supports multiple named local profiles without authentication. The React
+client stores the active profile ID locally and sends it in `X-Aria-Profile-ID`;
+task and event dependencies validate that profile and construct repositories scoped
+to it. Profile switching reloads both dashboard collections. Revision
+`20261118_0008` creates the profile registry, preserves existing records under the
+`local-default` profile, and adds indexed ownership columns without rebuilding the
+legacy SQLite tables.
+
+This is intentionally a trusted-device testing feature, not identity or access
+control. Anyone who can open the local dashboard can switch profiles. Applications,
+preferences, integration records, and other later dashboard areas are not yet scoped
+by this selector. Version 3 still owns authentication, authorization, sessions, and
+server-grade user isolation.
+
 ## Task organization domain
 
 Tasks reference normalized category and optional project records and use a many-to-many

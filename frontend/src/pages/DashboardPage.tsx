@@ -2,12 +2,16 @@ import { useMemo, useRef, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
 import { MetricCard } from "../components/MetricCard";
 import { StatusMessage } from "../components/StatusMessage";
+import { EventWorkspace } from "../features/events/EventWorkspace";
 import { TaskForm } from "../features/tasks/TaskForm";
 import { DeleteTaskDialog } from "../features/tasks/DeleteTaskDialog";
 import { TaskEditDialog } from "../features/tasks/TaskEditDialog";
 import { TaskList } from "../features/tasks/TaskList";
 import type { Task, TaskUpdate } from "../features/tasks/types";
 import { useTasks } from "../features/tasks/useTasks";
+import { TesterConsole } from "../features/tester/TesterConsole";
+
+const testerConsoleEnabled = import.meta.env.VITE_ENABLE_TESTER_CONSOLE === "true";
 
 export function DashboardPage() {
   const [filter, setFilter] = useState("All");
@@ -172,6 +176,10 @@ export function DashboardPage() {
             </p>
           </aside>
         </div>
+
+        <EventWorkspace />
+
+        {testerConsoleEnabled && <TesterConsole taskCount={tasks.length} />}
       </main>
 
       {editingTask && (

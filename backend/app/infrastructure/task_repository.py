@@ -16,8 +16,9 @@ def normalize_name(value: str) -> str:
 
 
 class SqlAlchemyTaskRepository:
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, profile_id: str = "local-default") -> None:
         self._session = session
+        self._profile_id = profile_id
 
     def list(
         self,
@@ -39,6 +40,7 @@ class SqlAlchemyTaskRepository:
                 selectinload(TaskRow.tags),
             )
             .distinct()
+            .where(TaskRow.profile_id == self._profile_id)
         )
         if search:
             pattern = f"%{search.strip()}%"
@@ -69,6 +71,7 @@ class SqlAlchemyTaskRepository:
         recurrence = values.pop("recurrence")
         row = TaskRow(
             **values,
+            profile_id=self._profile_id,
             category=self._category(str(category_name), timestamp),
             project=self._project(str(project_name), timestamp) if project_name else None,
             tags=self._tags(tag_names, timestamp),
@@ -89,7 +92,11 @@ class SqlAlchemyTaskRepository:
         *,
         timestamp: datetime,
     ) -> Task | None:
-        row = self._session.get(TaskRow, task_id)
+        row = self._session.scalar(
+            select(TaskRow).where(
+                TaskRow.id == task_id, TaskRow.profile_id == self._profile_id
+            )
+        )
         if row is None:
             return None
         normalized = dict(changes)
@@ -112,7 +119,11 @@ class SqlAlchemyTaskRepository:
         return self._to_domain(row)
 
     def delete(self, task_id: int) -> bool:
-        row = self._session.get(TaskRow, task_id)
+        row = self._session.scalar(
+            select(TaskRow).where(
+                TaskRow.id == task_id, TaskRow.profile_id == self._profile_id
+            )
+        )
         if row is None:
             return False
         self._session.delete(row)

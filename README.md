@@ -13,6 +13,8 @@ foundation provides:
 - Deterministic, explainable priority scores
 - SQLite persistence
 - A responsive dashboard
+- Lightweight local profiles for two-person demo testing (no login or verification)
+- Task and event creation, editing, deletion, and profile separation in the dashboard
 - Backend tests
 
 Version 1 will add the complete task/event/application model, deterministic planning,
@@ -59,6 +61,16 @@ npm run dev
 ```
 
 Open `http://localhost:5173`.
+
+Use the profile control in the header to create and switch between local demo
+profiles. Profiles deliberately have no password, verification, or access control;
+they are a testing convenience for trusted people sharing this installation. Tasks
+and events are separated by profile. Authentication and full per-user isolation
+remain Version 3 work.
+
+Developers can set `VITE_ENABLE_TESTER_CONSOLE=true` before starting the frontend to
+show the local diagnostics panel. The flag only hides the panel from the normal demo
+interface and must not be treated as a security boundary.
 
 ## Data and privacy
 

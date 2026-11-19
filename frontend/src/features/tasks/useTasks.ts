@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { taskApi } from "./api";
+import { PROFILE_CHANGED_EVENT } from "../../lib/api";
 import type { NewTask, Task, TaskUpdate } from "./types";
 
 function sortTasks(tasks: Task[]): Task[] {
@@ -42,7 +43,6 @@ export function useTasks() {
 
   useEffect(() => {
     let active = true;
-
     taskApi
       .list()
       .then((loadedTasks) => {
@@ -61,11 +61,16 @@ export function useTasks() {
       .finally(() => {
         if (active) setLoading(false);
       });
-
     return () => {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    const reload = () => void load();
+    window.addEventListener(PROFILE_CHANGED_EVENT, reload);
+    return () => window.removeEventListener(PROFILE_CHANGED_EVENT, reload);
+  }, [load]);
 
   async function createTask(draft: NewTask): Promise<boolean> {
     setSaving(true);

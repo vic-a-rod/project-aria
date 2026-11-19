@@ -9,8 +9,9 @@ from app.infrastructure.models import EventRow
 
 
 class SqlAlchemyEventRepository:
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, profile_id: str = "local-default") -> None:
         self._session = session
+        self._profile_id = profile_id
 
     def list(
         self,
@@ -19,7 +20,9 @@ class SqlAlchemyEventRepository:
         fixed: bool | None = None,
         source: EventSource | None = None,
     ) -> list[Event]:
-        statement: Select[tuple[EventRow]] = select(EventRow)
+        statement: Select[tuple[EventRow]] = select(EventRow).where(
+            EventRow.profile_id == self._profile_id
+        )
         if kind is not None:
             statement = statement.where(EventRow.kind == kind.value)
         if fixed is not None:
@@ -32,14 +35,23 @@ class SqlAlchemyEventRepository:
         return [self._to_domain(row) for row in self._session.scalars(statement).all()]
 
     def get(self, event_id: int) -> Event | None:
-        row = self._session.get(EventRow, event_id)
+        row = self._session.scalar(
+            select(EventRow).where(
+                EventRow.id == event_id, EventRow.profile_id == self._profile_id
+            )
+        )
         return self._to_domain(row) if row else None
 
     def create(self, event: NewEvent, *, timestamp: datetime) -> Event:
         values = event.__dict__.copy()
         values["kind"] = event.kind.value
         values["source_type"] = event.source_type.value
-        row = EventRow(**values, created_at=timestamp, updated_at=timestamp)
+        row = EventRow(
+            **values,
+            profile_id=self._profile_id,
+            created_at=timestamp,
+            updated_at=timestamp,
+        )
         self._session.add(row)
         self._session.commit()
         self._session.refresh(row)
@@ -52,7 +64,11 @@ class SqlAlchemyEventRepository:
         *,
         timestamp: datetime,
     ) -> Event | None:
-        row = self._session.get(EventRow, event_id)
+        row = self._session.scalar(
+            select(EventRow).where(
+                EventRow.id == event_id, EventRow.profile_id == self._profile_id
+            )
+        )
         if row is None:
             return None
         for field, value in changes.items():
@@ -65,7 +81,11 @@ class SqlAlchemyEventRepository:
         return self._to_domain(row)
 
     def delete(self, event_id: int) -> bool:
-        row = self._session.get(EventRow, event_id)
+        row = self._session.scalar(
+            select(EventRow).where(
+                EventRow.id == event_id, EventRow.profile_id == self._profile_id
+            )
+        )
         if row is None:
             return False
         self._session.delete(row)

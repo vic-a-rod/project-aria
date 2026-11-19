@@ -105,6 +105,44 @@ def test_health_and_local_cors_defaults(client: TestClient) -> None:
     assert "access-control-allow-origin" not in denied.headers
 
 
+def test_local_profiles_scope_tasks_and_events_without_login(client: TestClient) -> None:
+    profiles = client.get("/api/profiles")
+    assert profiles.status_code == 200
+    assert profiles.json()[0]["id"] == "local-default"
+
+    created_profile = client.post(
+        "/api/profiles", json={"display_name": "Fictional second tester"}
+    )
+    assert created_profile.status_code == 201
+    profile_id = created_profile.json()["id"]
+    headers = {"X-Aria-Profile-ID": profile_id}
+
+    created_task = client.post(
+        "/api/tasks", json={"title": "Second tester task"}, headers=headers
+    )
+    assert created_task.status_code == 201
+    assert client.get("/api/tasks").json() == []
+    assert [item["title"] for item in client.get("/api/tasks", headers=headers).json()] == [
+        "Second tester task"
+    ]
+
+    event_payload = {
+        "title": "Second tester event",
+        "start_at": "2026-11-20T17:00:00Z",
+        "end_at": "2026-11-20T18:00:00Z",
+        "time_zone": "UTC",
+    }
+    assert client.post("/api/events", json=event_payload, headers=headers).status_code == 201
+    assert client.get("/api/events").json() == []
+    assert [item["title"] for item in client.get("/api/events", headers=headers).json()] == [
+        "Second tester event"
+    ]
+
+    unknown_headers = {"X-Aria-Profile-ID": "missing-fictional-profile"}
+    assert client.get("/api/tasks", headers=unknown_headers).status_code == 404
+    assert client.get("/api/events", headers=unknown_headers).status_code == 404
+
+
 def test_task_search_filters_sort_and_pagination(client: TestClient) -> None:
     fictional_tasks = [
         {

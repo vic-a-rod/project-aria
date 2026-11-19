@@ -12,7 +12,7 @@ from app.infrastructure.migrations_runner import (
     INITIAL_REVISION,
     upgrade_database,
 )
-from app.infrastructure.models import CategoryRow, TagRow, TaskRow
+from app.infrastructure.models import CategoryRow, ProfileRow, TagRow, TaskRow
 from app.infrastructure.task_repository import SqlAlchemyTaskRepository
 
 
@@ -42,6 +42,7 @@ def test_upgrade_from_empty_creates_current_task_schema(tmp_path) -> None:
         "external_records",
         "projects",
         "preferences",
+        "profiles",
         "proposal_evidence",
         "tags",
         "task_tags",
@@ -51,6 +52,7 @@ def test_upgrade_from_empty_creates_current_task_schema(tmp_path) -> None:
     } <= set(inspector.get_table_names())
     assert {column["name"] for column in inspector.get_columns("events")} == {
         "id",
+        "profile_id",
         "title",
         "description",
         "kind",
@@ -73,6 +75,7 @@ def test_upgrade_from_empty_creates_current_task_schema(tmp_path) -> None:
     }
     assert {column["name"] for column in inspector.get_columns("tasks")} == {
         "id",
+        "profile_id",
         "title",
         "description",
         "category_id",
@@ -136,6 +139,8 @@ def test_upgrade_adopts_only_the_known_pre_alembic_schema(tmp_path) -> None:
         assert [tag.name for tag in task.tags] == ["forms", "school"]
         assert task.recurrence_rule == "FREQ=WEEKLY"
         assert task.completed_at == datetime(2026, 11, 9, 17, 0, tzinfo=UTC)
+        assert task.profile_id == "local-default"
+        assert session.get(ProfileRow, "local-default").display_name == "Local User"
         assert session.scalars(select(CategoryRow)).all()[0].normalized_name == "education"
         assert {tag.normalized_name for tag in session.scalars(select(TagRow)).all()} == {
             "forms",

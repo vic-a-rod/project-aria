@@ -1,4 +1,15 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const ACTIVE_PROFILE_KEY = "aria.activeProfileId";
+export const PROFILE_CHANGED_EVENT = "aria-profile-changed";
+
+export function getActiveProfileId(): string {
+  return localStorage.getItem(ACTIVE_PROFILE_KEY) ?? "local-default";
+}
+
+export function setActiveProfileId(profileId: string): void {
+  localStorage.setItem(ACTIVE_PROFILE_KEY, profileId);
+  window.dispatchEvent(new CustomEvent(PROFILE_CHANGED_EVENT, { detail: profileId }));
+}
 
 export class ApiError extends Error {
   constructor(
@@ -12,8 +23,12 @@ export class ApiError extends Error {
 
 export async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
     ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "X-Aria-Profile-ID": getActiveProfileId(),
+      ...options?.headers,
+    },
   });
 
   if (!response.ok) {

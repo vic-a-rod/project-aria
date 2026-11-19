@@ -1,3 +1,5 @@
+import { ProfileSwitcher } from "../features/profiles/ProfileSwitcher";
+
 export function AppHeader() {
   return (
     <header className="app-header">
@@ -5,6 +7,7 @@ export function AppHeader() {
         <span aria-hidden="true">A</span> Aria
       </a>
       <p className="app-tagline">Sustainable productivity, one clear choice at a time.</p>
+      <ProfileSwitcher />
     </header>
   );
 }

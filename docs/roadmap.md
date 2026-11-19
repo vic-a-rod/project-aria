@@ -7,6 +7,25 @@ new transports, hosting, and devices.
 > Build each functional capability once behind stable application commands.
 > Later versions add clients and infrastructure, not duplicate business logic.
 
+## Active local demo milestone
+
+The current short-term target is a two-person, trusted-device demo before the whole
+Version 1 scope is complete. It is complete when:
+
+- Local profiles can be created and switched without login, and task/event data is
+  separated between profiles.
+- The dashboard creates, edits, completes, and deletes tasks and events through the
+  FastAPI backend and SQLite database.
+- The dashboard presents an agenda or weekly view using those saved records.
+- Typed assistant requests reach real read handlers and safe mutation previews.
+- The dashboard can display assistant results and confirm a proposed change.
+- One automated acceptance flow covers profile switching, persistence, and the
+  primary task/event/assistant workflow.
+
+The first two bullets are now implemented. Profile authentication, private remote
+access, and comprehensive scoping of every Version 1 record remain outside this demo
+milestone; they must be completed before hosted multi-user use.
+
 ## Version 1 — Local typed Aria
 
 Aria runs on a Windows computer and is controlled through screens and typed

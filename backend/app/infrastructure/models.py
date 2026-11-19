@@ -30,6 +30,15 @@ task_tags = Table(
 )
 
 
+class ProfileRow(Base):
+    __tablename__ = "profiles"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    display_name: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utc_now, onupdate=utc_now)
+
+
 class ProjectRow(Base):
     __tablename__ = "projects"
 
@@ -64,6 +73,9 @@ class TaskRow(Base):
     __tablename__ = "tasks"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    profile_id: Mapped[str] = mapped_column(
+        ForeignKey("profiles.id"), default="local-default", index=True
+    )
     title: Mapped[str] = mapped_column(String(200), index=True)
     description: Mapped[str] = mapped_column(Text, default="")
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), index=True)
@@ -92,6 +104,9 @@ class EventRow(Base):
     __tablename__ = "events"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    profile_id: Mapped[str] = mapped_column(
+        ForeignKey("profiles.id"), default="local-default", index=True
+    )
     title: Mapped[str] = mapped_column(String(200), index=True)
     description: Mapped[str] = mapped_column(Text, default="")
     kind: Mapped[str] = mapped_column(String(32), index=True)

@@ -11,6 +11,7 @@ from app.api.action_routes import create_action_router
 from app.api.application_routes import create_application_router
 from app.api.event_routes import create_event_router
 from app.api.preference_routes import create_preference_router
+from app.api.profile_routes import create_profile_router
 from app.api.routes import create_api_router
 from app.api.synchronization_routes import create_synchronization_router
 from app.application.clock import Clock
@@ -28,6 +29,7 @@ from app.infrastructure.dependencies import (
     create_application_service_dependency,
     create_event_service_dependency,
     create_preference_service_dependency,
+    create_profile_service_dependency,
     create_synchronization_service_dependency,
     create_task_service_dependency,
 )
@@ -104,6 +106,12 @@ def create_app(
         application_clock,
     )
     app.include_router(create_preference_router(preference_service_dependency))
+    profile_service_dependency = partial(
+        create_profile_service_dependency,
+        sessions,
+        application_clock,
+    )
+    app.include_router(create_profile_router(profile_service_dependency))
     synchronization_service_dependency = partial(
         create_synchronization_service_dependency,
         sessions,

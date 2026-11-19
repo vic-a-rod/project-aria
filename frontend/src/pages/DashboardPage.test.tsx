@@ -1,6 +1,8 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { eventApi } from "../features/events/api";
+import { profileApi } from "../features/profiles/api";
 import { taskApi } from "../features/tasks/api";
 import type { Task } from "../features/tasks/types";
 import { DashboardPage } from "./DashboardPage";
@@ -12,6 +14,22 @@ vi.mock("../features/tasks/api", () => ({
     setCompleted: vi.fn(),
     update: vi.fn(),
     remove: vi.fn(),
+  },
+}));
+
+vi.mock("../features/events/api", () => ({
+  eventApi: {
+    list: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    remove: vi.fn(),
+  },
+}));
+
+vi.mock("../features/profiles/api", () => ({
+  profileApi: {
+    list: vi.fn(),
+    create: vi.fn(),
   },
 }));
 
@@ -41,6 +59,8 @@ const fictionalTask: Task = {
 };
 
 const mockedTaskApi = vi.mocked(taskApi);
+const mockedEventApi = vi.mocked(eventApi);
+const mockedProfileApi = vi.mocked(profileApi);
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -53,6 +73,16 @@ function deferred<T>() {
 describe("DashboardPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
+    mockedEventApi.list.mockResolvedValue([]);
+    mockedProfileApi.list.mockResolvedValue([
+      {
+        id: "local-default",
+        display_name: "Local User",
+        created_at: "2026-11-18T19:00:00Z",
+        updated_at: "2026-11-18T19:00:00Z",
+      },
+    ]);
   });
 
   it("shows loading and then an empty local workspace", async () => {
