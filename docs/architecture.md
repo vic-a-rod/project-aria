@@ -40,6 +40,21 @@ preferences, integration records, and other later dashboard areas are not yet sc
 by this selector. Version 3 still owns authentication, authorization, sessions, and
 server-grade user isolation.
 
+## Local demo assistant
+
+The dashboard exposes the typed-command lifecycle through a profile-scoped assistant
+workspace. The first offline vertical slice recognizes deterministic task-list and
+task-create requests. Reads pass through the command dispatcher and return structured
+data, evidence, and reasoning. Creation requests persist a proposal and hashed
+confirmation token but do not create a task until the user explicitly confirms.
+
+At confirmation time the application recalculates the task-list state hash, validates
+the one-use token, creates the task in the active profile, and records the execution.
+Incomplete creation requests return a clarification result. Unsupported language
+fails with local examples rather than silently guessing. This deliberately limited
+offline interpreter keeps the clean-install demo useful without a model; the bounded
+language-model adapter remains the path for the full Version 1 command catalog.
+
 ## Task organization domain
 
 Tasks reference normalized category and optional project records and use a many-to-many

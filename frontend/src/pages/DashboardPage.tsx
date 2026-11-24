@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
 import { MetricCard } from "../components/MetricCard";
 import { StatusMessage } from "../components/StatusMessage";
+import { AssistantWorkspace } from "../features/assistant/AssistantWorkspace";
 import { EventWorkspace } from "../features/events/EventWorkspace";
 import { TaskForm } from "../features/tasks/TaskForm";
 import { DeleteTaskDialog } from "../features/tasks/DeleteTaskDialog";
@@ -178,6 +179,8 @@ export function DashboardPage() {
         </div>
 
         <EventWorkspace />
+
+        <AssistantWorkspace onTaskCreated={retry} />
 
         {testerConsoleEnabled && <TesterConsole taskCount={tasks.length} />}
       </main>

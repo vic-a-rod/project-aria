@@ -5,6 +5,7 @@ from fastapi import Header, HTTPException, status
 
 from app.application.actions import ActionService
 from app.application.applications import ApplicationService
+from app.application.assistant import LocalAssistantService
 from app.application.clock import Clock
 from app.application.events import EventService
 from app.application.preferences import PreferenceService
@@ -43,6 +44,23 @@ def create_action_service_dependency(
 ) -> Generator[ActionService, None, None]:
     with session_factory() as session:
         yield ActionService(SqlAlchemyActionRepository(session), clock)
+
+
+def create_assistant_service_dependency(
+    session_factory: SessionFactory,
+    clock: Clock,
+    profile_id: Annotated[str, Header(alias="X-Aria-Profile-ID")] = "local-default",
+) -> Generator[LocalAssistantService, None, None]:
+    with session_factory() as session:
+        if session.get(ProfileRow, profile_id) is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="profile not found"
+            )
+        yield LocalAssistantService(
+            TaskService(SqlAlchemyTaskRepository(session, profile_id), clock),
+            ActionService(SqlAlchemyActionRepository(session), clock),
+            clock,
+        )
 
 
 def create_event_service_dependency(

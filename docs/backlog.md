@@ -240,6 +240,8 @@ source indicators, and stable dashboard summaries.
 
 ### V1-U05 — Typed assistant workspace
 
+Status: in progress — offline task read/create vertical slice complete
+
 Display conversation, structured results, evidence, explanations, proposals,
 clarifications, confirmations, and execution outcomes.
 

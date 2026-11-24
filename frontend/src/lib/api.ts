@@ -15,6 +15,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    readonly detail?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -32,7 +33,14 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
   });
 
   if (!response.ok) {
-    throw new ApiError(`Aria API returned ${response.status}`, response.status);
+    let detail: string | undefined;
+    try {
+      const payload = await response.json();
+      if (typeof payload?.detail === "string") detail = payload.detail;
+    } catch {
+      // The status and generic message remain useful when no JSON body is available.
+    }
+    throw new ApiError(`Aria API returned ${response.status}`, response.status, detail);
   }
 
   return response.status === 204 ? (undefined as T) : response.json();

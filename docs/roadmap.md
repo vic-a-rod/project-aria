@@ -22,8 +22,12 @@ Version 1 scope is complete. It is complete when:
 - One automated acceptance flow covers profile switching, persistence, and the
   primary task/event/assistant workflow.
 
-The first two bullets are now implemented. Profile authentication, private remote
-access, and comprehensive scoping of every Version 1 record remain outside this demo
+The first two bullets are implemented. The assistant now also supports an offline
+task-list read and confirmed task-creation vertical slice, including clarification,
+evidence, deterministic reasoning, previews, state revalidation, and execution
+outcomes. Agenda/weekly presentation, broader command handlers, and the automated
+end-to-end acceptance flow remain. Profile authentication, private remote access,
+and comprehensive scoping of every Version 1 record remain outside this demo
 milestone; they must be completed before hosted multi-user use.
 
 ## Version 1 — Local typed Aria
