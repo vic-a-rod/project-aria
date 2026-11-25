@@ -230,10 +230,14 @@ workflows with pending/success/error feedback and keyboard operation.
 
 ### V1-U03 — Calendar and workload views
 
+Status: in progress — profile-aware seven-day agenda complete
+
 Add daily, weekly, monthly, custom-range, free-time, conflict, and workload views that
 consume deterministic backend results.
 
 ### V1-U04 — Search, organization, and provenance
+
+Status: in progress — dashboard task search and completion filters complete
 
 Add search, filters, sorting, custom categories, completed organization, external
 source indicators, and stable dashboard summaries.

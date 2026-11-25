@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StatusMessage } from "../../components/StatusMessage";
 import { DeleteEventDialog } from "./DeleteEventDialog";
 import { EventEditDialog } from "./EventEditDialog";
@@ -7,7 +7,15 @@ import { EventList } from "./EventList";
 import type { CalendarEvent, NewCalendarEvent } from "./types";
 import { useEvents } from "./useEvents";
 
-export function EventWorkspace() {
+interface EventWorkspaceProps {
+  onStateChange?: (state: {
+    events: CalendarEvent[];
+    loading: boolean;
+    error: string;
+  }) => void;
+}
+
+export function EventWorkspace({ onStateChange }: EventWorkspaceProps) {
   const [editing, setEditing] = useState<CalendarEvent | null>(null);
   const [deleting, setDeleting] = useState<CalendarEvent | null>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
@@ -25,6 +33,10 @@ export function EventWorkspace() {
     deleteEvent,
     clearFeedback,
   } = useEvents();
+
+  useEffect(() => {
+    onStateChange?.({ events, loading, error });
+  }, [error, events, loading, onStateChange]);
 
   function rememberFocus() {
     returnFocusRef.current = document.activeElement as HTMLElement | null;

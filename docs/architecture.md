@@ -55,6 +55,21 @@ fails with local examples rather than silently guessing. This deliberately limit
 offline interpreter keeps the clean-install demo useful without a model; the bounded
 language-model adapter remains the path for the full Version 1 command catalog.
 
+## Weekly agenda presentation
+
+The dashboard derives a read-only seven-day agenda from the task and event
+collections already loaded for the active local profile. It does not issue duplicate
+API requests or persist a second calendar representation. Incomplete tasks appear on
+their due dates in deterministic priority order; saved events appear on their local
+calendar date using each event's explicit IANA time zone. Completed tasks and records
+outside the seven-day window remain outside the view.
+
+The agenda treats empty days and a wholly empty week as valid unallocated time. Task
+and event CRUD state flows into the view immediately, and profile switching continues
+to reload through the existing feature hooks. Recurrence expansion, free-time blocks,
+conflicts, and alternative calendar ranges remain later V1-U03 slices backed by the
+deterministic engines.
+
 ## Task organization domain
 
 Tasks reference normalized category and optional project records and use a many-to-many

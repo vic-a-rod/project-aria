@@ -3,7 +3,9 @@ import { AppHeader } from "../components/AppHeader";
 import { MetricCard } from "../components/MetricCard";
 import { StatusMessage } from "../components/StatusMessage";
 import { AssistantWorkspace } from "../features/assistant/AssistantWorkspace";
+import { WeeklyAgenda } from "../features/agenda/WeeklyAgenda";
 import { EventWorkspace } from "../features/events/EventWorkspace";
+import type { CalendarEvent } from "../features/events/types";
 import { TaskForm } from "../features/tasks/TaskForm";
 import { DeleteTaskDialog } from "../features/tasks/DeleteTaskDialog";
 import { TaskEditDialog } from "../features/tasks/TaskEditDialog";
@@ -15,9 +17,16 @@ import { TesterConsole } from "../features/tester/TesterConsole";
 const testerConsoleEnabled = import.meta.env.VITE_ENABLE_TESTER_CONSOLE === "true";
 
 export function DashboardPage() {
-  const [filter, setFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [completionFilter, setCompletionFilter] = useState<"all" | "open" | "completed">("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
+  const [eventState, setEventState] = useState<{
+    events: CalendarEvent[];
+    loading: boolean;
+    error: string;
+  }>({ events: [], loading: true, error: "" });
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const {
     tasks,
@@ -88,9 +97,25 @@ export function DashboardPage() {
     () => ["All", ...Array.from(new Set(tasks.map((task) => task.category)))],
     [tasks],
   );
-  const visibleTasks = tasks.filter(
-    (task) => filter === "All" || task.category === filter,
-  );
+  const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
+  const visibleTasks = tasks.filter((task) => {
+    const matchesCategory = categoryFilter === "All" || task.category === categoryFilter;
+    const matchesCompletion =
+      completionFilter === "all" ||
+      (completionFilter === "completed" ? task.is_completed : !task.is_completed);
+    const searchableText = [
+      task.title,
+      task.description,
+      task.category,
+      task.project ?? "",
+      ...task.tags,
+    ]
+      .join(" ")
+      .toLocaleLowerCase();
+    return matchesCategory && matchesCompletion && searchableText.includes(normalizedQuery);
+  });
+  const filtersActive =
+    categoryFilter !== "All" || completionFilter !== "all" || normalizedQuery.length > 0;
   const openTasks = tasks.filter((task) => !task.is_completed);
   const focusMinutes = openTasks.reduce((sum, task) => sum + task.estimated_minutes, 0);
   const topPriority = openTasks.reduce(
@@ -128,15 +153,48 @@ export function DashboardPage() {
                 <p className="eyebrow">Prioritized queue</p>
                 <h2 id="responsibilities-title" tabIndex={-1}>Your responsibilities</h2>
               </div>
-              <label className="filter-control">
-                <span>Category</span>
-                <select value={filter} onChange={(event) => setFilter(event.target.value)}>
-                  {categories.map((category) => (
-                    <option key={category}>{category}</option>
-                  ))}
-                </select>
-              </label>
+              <div className="task-filters" aria-label="Task filters">
+                <label className="search-control">
+                  <span>Search tasks</span>
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    placeholder="Search tasks"
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                  />
+                </label>
+                <label className="filter-control">
+                  <span>Category</span>
+                  <select
+                    value={categoryFilter}
+                    onChange={(event) => setCategoryFilter(event.target.value)}
+                  >
+                    {categories.map((category) => (
+                      <option key={category}>{category}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="filter-control">
+                  <span>Status</span>
+                  <select
+                    value={completionFilter}
+                    onChange={(event) =>
+                      setCompletionFilter(event.target.value as "all" | "open" | "completed")
+                    }
+                  >
+                    <option value="all">All statuses</option>
+                    <option value="open">Open</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </label>
+              </div>
             </div>
+
+            {!loading && tasks.length > 0 && (
+              <p className="task-filter-summary" aria-live="polite">
+                Showing {visibleTasks.length} of {tasks.length} tasks
+              </p>
+            )}
 
             {error && !editingTask && !deleteTarget && (
               <StatusMessage message={error} onRetry={tasks.length === 0 ? retry : undefined} />
@@ -148,11 +206,13 @@ export function DashboardPage() {
               </p>
             ) : visibleTasks.length === 0 ? (
               <div className="empty">
-                <strong>{filter === "All" ? "Your local workspace is ready." : `No ${filter} tasks.`}</strong>
+                <strong>
+                  {filtersActive ? "No tasks match these filters." : "Your local workspace is ready."}
+                </strong>
                 <span>
-                  {filter === "All"
-                    ? "Add a responsibility when you are ready—an empty schedule is valid too."
-                    : "Choose another category or add a task for this one."}
+                  {filtersActive
+                    ? "Try a different search, category, or status."
+                    : "Add a responsibility when you are ready—an empty schedule is valid too."}
                 </span>
               </div>
             ) : (
@@ -178,7 +238,14 @@ export function DashboardPage() {
           </aside>
         </div>
 
-        <EventWorkspace />
+        <WeeklyAgenda
+          tasks={tasks}
+          events={eventState.events}
+          loading={loading || eventState.loading}
+          error={error || eventState.error}
+        />
+
+        <EventWorkspace onStateChange={setEventState} />
 
         <AssistantWorkspace onTaskCreated={retry} />
 

@@ -91,7 +91,7 @@ describe("DashboardPage", () => {
 
     render(<DashboardPage />);
 
-    expect(screen.getByRole("status")).toHaveTextContent("Loading your local tasks");
+    expect(screen.getByText("Loading your local tasks…")).toBeInTheDocument();
     request.resolve([]);
 
     expect(await screen.findByText("Your local workspace is ready.")).toBeInTheDocument();
@@ -107,14 +107,18 @@ describe("DashboardPage", () => {
 
     render(<DashboardPage />);
 
-    const alert = await screen.findByRole("alert");
+    const responsibilities = screen
+      .getByText("Your responsibilities")
+      .closest<HTMLElement>(".task-panel");
+    expect(responsibilities).not.toBeNull();
+    const alert = await within(responsibilities!).findByRole("alert");
     expect(alert).toHaveTextContent("The local API is unavailable");
 
     await user.click(within(alert).getByRole("button", { name: "Try again" }));
 
     await waitFor(() => expect(mockedTaskApi.list).toHaveBeenCalledTimes(2));
     expect(await screen.findByText("Your local workspace is ready.")).toBeInTheDocument();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(within(responsibilities!).queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("creates a fictional task through the quick-capture form", async () => {
@@ -378,6 +382,58 @@ describe("DashboardPage", () => {
       "could not delete that task",
     );
     expect(screen.getByText(fictionalTask.title)).toBeInTheDocument();
+  });
+
+  it("searches task metadata and combines category and completion filters", async () => {
+    const user = userEvent.setup();
+    const completedCareerTask: Task = {
+      ...fictionalTask,
+      id: 42,
+      title: "Archive fictional application notes",
+      description: "Close the invented internship exercise.",
+      category: "Career",
+      project: "Project Comet",
+      tags: ["portfolio", "fictional"],
+      is_completed: true,
+      completed_at: "2030-01-02T12:00:00Z",
+      priority: { score: 0, reasons: ["Task is complete."] },
+    };
+    const openCareerTask: Task = {
+      ...fictionalTask,
+      id: 43,
+      title: "Draft fictional portfolio summary",
+      category: "Career",
+      project: "Project Comet",
+      tags: ["portfolio"],
+    };
+    mockedTaskApi.list.mockResolvedValue([
+      fictionalTask,
+      completedCareerTask,
+      openCareerTask,
+    ]);
+
+    render(<DashboardPage />);
+    await screen.findByText(fictionalTask.title);
+    const taskPanel = screen.getByText("Your responsibilities").closest<HTMLElement>(".task-panel");
+    expect(taskPanel).not.toBeNull();
+    const taskControls = within(taskPanel!);
+
+    expect(screen.getByText("Showing 3 of 3 tasks")).toBeInTheDocument();
+    await user.type(taskControls.getByLabelText("Search tasks"), "project comet");
+
+    expect(screen.queryByText(fictionalTask.title)).not.toBeInTheDocument();
+    expect(screen.getByText(completedCareerTask.title)).toBeInTheDocument();
+    expect(screen.getByText(openCareerTask.title)).toBeInTheDocument();
+    expect(screen.getByText("Showing 2 of 3 tasks")).toBeInTheDocument();
+
+    await user.selectOptions(taskControls.getByLabelText("Status"), "completed");
+    expect(screen.getByText(completedCareerTask.title)).toBeInTheDocument();
+    expect(screen.queryByText(openCareerTask.title)).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 3 tasks")).toBeInTheDocument();
+
+    await user.selectOptions(taskControls.getByLabelText("Category"), "Education");
+    expect(screen.getByText("No tasks match these filters.")).toBeInTheDocument();
+    expect(screen.getByText("Try a different search, category, or status.")).toBeInTheDocument();
   });
 });
 
